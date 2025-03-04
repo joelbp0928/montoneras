@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema de Puntos - Donas</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
+    <link rel="stylesheet" href="../css/styleAdmin.css" />
+  </head>
+  <body>
+    <div class="background-image"></div>
+    <!-- Encabezado con imagen -->
+    <div class="container">
+      <a href="./indexadmin.html"
+        ><img src="../img/LOGO MONTO.png" alt="Logo" class="logo"
+      /></a>
+    </div>
+
+    <!-- Ventana para ingresar al cliente -->
+    <div class="container">
+      <div class="window" id="formulario">
+        <h2>Registrar Cliente</h2>
+        <div>
+          <a
+            type="button"
+            class="btn-close btn-close-black close-button-container"
+            href="./indexadmin.html"
+            aria-label="Close"
+          ></a>
+        </div>
+        <form class="form-group" id="form-registrar">
+          <label for="nombre">Nombre</label>
+          <input
+            type="text"
+            id="nombre"
+            class="form-control"
+            placeholder="Nombre completo"
+            required
+          />
+          <label for="telefono">Telefono(celular)</label>
+          <input
+            type="text"
+            id="telefono"
+            class="form-control"
+            value="+52"
+            placeholder="+521236547857"
+            required
+          />
+          <div class="row">
+            <div class="col">
+              <label for="alcaldia">Alcaldia o Municipio</label>
+              <input type="text" id="alcaldia" class="form-control" required />
+            </div>
+            <div class="col">
+              <label for="colonia">Colonia</label>
+              <input type="text" id="colonia" class="form-control" required />
+            </div>
+          </div>
+          <label for="nacimiento" id="nacimientolabel"
+            >Fecha de Nacimiento</label
+          >
+          <input
+            type="date"
+            id="nacimiento"
+            class="form-control"
+            value="2000-01-01"
+          />
+          <div class="button-container">
+            <button type="submit">Registrar</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="window" id="exito">
+        <p id="clienteId" class="cliente-id">ID:</p>
+        <p id="exito-texto" class="cliente-id">Cliente registrado con éxito</p>
+        <div class="button-container">
+          <button id="btnAgregarPuntos">Agregar puntos</button>
+        </div>
+        <div id="puntos-container">
+          <label for="puntos">Total Compra:</label>
+          <input type="text" id="puntos" class="input-text" />
+          <div id="mensajeErrorPuntosContainer" class="mensaje-container">
+            <span class="mensaje-error" id="mensajeErrorPuntos"></span>
+          </div>
+          <div class="button-container">
+            <button id="btnCalcularPuntos">Calcular</button>
+          </div>
+          <h4 id="totalPuntos"></h4>
+        </div>
+      </div>
+    </div>
+    <footer>
+      <p>
+        Sistema de Puntos - Mr Donut | Todos los derechos
+        reservados
+      </p>
+    </footer>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/toastify-js"
+    ></script>
+    <script type="module" src="../js/admin/registroadmin.js"></script>
+  </body>
+</html>

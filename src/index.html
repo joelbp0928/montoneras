@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema de Puntos - Registro</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="css/estilo.css" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
+  </head>
+
+  <body>
+    <div class="background-image"></div>
+    <div>
+      <div class="container">
+        <img src="img/LOGO MONTO.png" alt="Logo" class="logo" />
+      </div>
+      <div class="container p-4">
+        <div class="row">
+          <div class="col-md-6 offset-md-3">
+            <ul class="list-group posts"></ul>
+          </div>
+        </div>
+      </div>
+      <!-- 🔹 Contenedor de botones -->
+      <div class="auth-buttons-container">
+        <a
+          href="#"
+          class="auth-button logged-out"
+          data-bs-toggle="modal"
+          data-bs-target="#signinModal"
+        >
+          Iniciar sesión
+        </a>
+        <a
+          href="#"
+          class="auth-button logged-out"
+          data-bs-toggle="modal"
+          data-bs-target="#signupModal"
+        >
+          Registrarse
+        </a>
+        <a href="#" class="auth-button logged-in" id="logout">Cerrar sesión</a>
+      </div>
+      <!-- 🔹 Botón para abrir el Menú (Centrado y con color personalizado) -->
+      <div class="menu-button-container">
+        <a href="#" type="button" class="menu-button" id="openMenu"> Menú </a>
+      </div>
+
+      <!-- 🔹 Botones de redes sociales -->
+      <div class="social-buttons-container">
+        <a
+          href="https://www.instagram.com/mister.donut?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+          target="_blank"
+          class="social-button instagram"
+        >
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a
+          href="https://www.facebook.com/profile.php?id=61566335092408"
+          target="_blank"
+          class="social-button facebook"
+        >
+          <i class="fab fa-facebook-f"></i>
+        </a>
+        <a
+          href="https://wa.me/5535186613"
+          target="_blank"
+          class="social-button whatsapp"
+        >
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- 🔹 Modal con Carrusel -->
+    <div class="modal fade" id="menuModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-body">
+            <div class="modal-header">
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Cerrar"
+              ></button>
+            </div>
+            <!-- 🔹 Carrusel de Bootstrap -->
+            <div id="menuCarousel" class="carousel slide" data-bs-touch="false">
+              <div class="carousel-inner" id="carouselInner"></div>
+
+              <!-- 🔹 Controles del carrusel -->
+              <button
+                class="carousel-control-prev"
+                type="button"
+                data-bs-target="#menuCarousel"
+                data-bs-slide="prev"
+              >
+                <span
+                  class="carousel-control-prev-icon"
+                  aria-hidden="true"
+                ></span>
+              </button>
+              <button
+                class="carousel-control-next"
+                type="button"
+                data-bs-target="#menuCarousel"
+                data-bs-slide="next"
+              >
+                <span
+                  class="carousel-control-next-icon"
+                  aria-hidden="true"
+                ></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--Modal forms-->
+    <div
+      class="modal fade"
+      id="signupModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="exampleModalSignup"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Registro</h3>
+            <button
+              type="button"
+              class="btn-close btn-close-black"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="signup-form">
+              <div>
+                <label for="nombre">Nombre:</label>
+                <input
+                  type="text"
+                  id="nombre"
+                  class="form-control mb-3t"
+                  placeholder="Nombre completo"
+                  required
+                />
+              </div>
+              <div>
+                <label for="telefonoRegistro">Telefono:</label>
+                <input
+                  type="phone"
+                  id="telefonoRegistro"
+                  class="form-control mb-3t"
+                  placeholder="5545458585"
+                  required
+                />
+              </div>
+              <span id="mensajeErrorTelefono"></span>
+              <div>
+                <label for="alcaldia">Alcaldia o Municipio:</label>
+                <input
+                  type="text"
+                  id="alcaldia"
+                  class="form-control mb-3t"
+                  required
+                />
+              </div>
+              <div>
+                <label for="colonia">Colonia:</label>
+                <input
+                  type="text"
+                  id="colonia"
+                  class="form-control mb-3t"
+                  required
+                />
+              </div>
+              <div>
+                <label for="nacimiento">Fecha Nacimieno:</label>
+                <input
+                  type="date"
+                  id="nacimiento"
+                  class="form-control mb-3t"
+                  value="2000-01-01"
+                  placeholder="dd/mm/aaaa"
+                  required
+                />
+              </div>
+              <span id="mensajeErrorNacimiento"></span>
+              <div>
+                <label for="email">Correo electrónico:</label>
+                <input
+                  type="email"
+                  id="email"
+                  class="form-control mb-3t"
+                  placeholder="email@ejemplo.com"
+                  required
+                />
+              </div>
+              <span id="mensajeErrorEmail"></span>
+              <div>
+                <label for="password">Contraseña:</label>
+                <input
+                  type="password"
+                  id="password"
+                  class="form-control mb-3t"
+                  placeholder="Contraseña"
+                  required
+                />
+              </div>
+              <div>
+                <label for="confirmPassword">Confirmar Contraseña:</label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  placeholder="Confirme contraseña"
+                  class="form-control mb-3t"
+                  required
+                />
+              </div>
+              <span id="mensajeErrorPassword" class="help-block"></span>
+              <div class="button-container">
+                <button type="submit" id="registroButton">Registrarse</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Modal iniciar sesion-->
+    <div
+      class="modal fade"
+      id="signinModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="exampleModalSignin"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Inicio Sesión</h3>
+            <button
+              type="button"
+              class="btn-close btn-close-black"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="login-form">
+              <label for="email">Correo Electronico</label>
+              <input
+                type="email"
+                id="login-email"
+                class="form-control mb-3"
+                placeholder="Correo electronico"
+                required
+              />
+              <label for="password">Contraseña</label>
+              <input
+                type="password"
+                id="login-password"
+                class="form-control mb-3"
+                placeholder="Contraseña minimo 6 caracteres"
+                required
+              />
+
+              <button type="submit" class="btn btn-success w-100 mb-4">
+                Ingresar
+              </button>
+              <strong
+                ><p>
+                  Si nuestro personal lo ha registrado, por favor inicie sesión
+                  con su número celular
+                </p></strong
+              >
+              <div class="btn-container-telefono">
+                <button
+                  type="button"
+                  class="btn-telefono"
+                  data-bs-toggle="modal"
+                  data-bs-target="#signinModalTelefono"
+                >
+                  <i class="fas fa-phone-alt me-2"></i>Telefono
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Modal validar telefono-->
+    <div
+      class="modal fade"
+      id="signinModalTelefono"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="exampleModalSigninTelefono"
+    >
+      <div class="modal-dialog" id="validarTelefonoDiv">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Validar teléfono</h3>
+            <button
+              type="button"
+              class="btn-close btn-close-black"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="telefono-form">
+              <label for="telefono">Teléfono:</label>
+              <input
+                type="phone"
+                id="telefono"
+                class="form-control mb-3"
+                value="+52"
+                placeholder="+521234567898"
+                required
+              />
+              <div id="recaptcha-container"></div>
+              <button
+                type="submit"
+                id="signinTelefonobtn"
+                class="btn btn-success w-100 mb-4"
+              >
+                Enviar código
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal validar codigo-->
+    <div
+      class="modal fade"
+      id="codigoModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="exampleModalSigninCodigo"
+    >
+      <div class="modal-dialog" id="validarCodigoDiv">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Validar Codigo</h3>
+            <button
+              type="button"
+              class="btn-close btn-close-black"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="codigo-form">
+              <label for="codigo">Codigo:</label>
+              <input
+                type="tel"
+                id="codigo"
+                class="form-control mb-3"
+                required
+              />
+              <button type="submit" class="btn btn-success w-100 mb-4">
+                Validar código
+              </button>
+              <a
+                >si no recibe ningun codigo en 30s vuelva a cargar la pagina e
+                intentelo de nuevo</a
+              >
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/toastify-js"
+    ></script>
+    <!-- Librería para hacer zoom en imágenes -->
+    <script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script>
+
+    <script type="module" src="./main.js"></script>
+    <footer>
+      <p>Sistema de Puntos - Mr. Donut | Todos los derechos reservados</p>
+    </footer>
+  </body>
+</html>

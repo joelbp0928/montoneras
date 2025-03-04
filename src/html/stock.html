@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Montoneras - Inventario</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.10.0/dist/css/bootstrap-datepicker.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.10.0/dist/js/bootstrap-datepicker.min.js"></script>
+
+    <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css"
+    />
+    <link
+    rel="stylesheet"
+    type="text/css"
+    href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
+    <link rel="stylesheet" href="../css/styleAdmin.css" />
+  </head>
+  <body>
+    <div class="background-image"></div>
+    <!-- Encabezado con imagen -->
+    <div class="container">
+      <a href="./indexadmin.html"
+        ><img src="../img/LOGO MONTO.png" alt="Logo" class="logo"
+      /></a>
+    </div>
+    <div class="container-inventario">
+      <div class="window">
+        <div>
+          <a
+            type="button"
+            class="btn-close btn-close-black close-button-container"
+            href="./indexadmin.html"
+            aria-label="Close"
+          ></a>
+        </div>
+        <nav class="button-container">
+          <button type="button" id="btnBuscarProductoTabla">
+            Buscar Producto
+          </button>
+          <button type="button" id="btnAgregarProductoTabla">
+            Agregar Producto
+          </button>
+        </nav>
+      </div>
+      <div class="window d-none" id="tablaAgregarProducto">
+        <h2>Agregar Producto</h2>
+        <table class="table table-auto">
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Producto</th>
+              <th scope="col">Medida</th>
+              <th scope="col">Stock</th>
+              <th scope="col">Fecha máxima de compra</th>
+              <th scope="col">Observaciones</th>
+              <th scope="col">Nivel de importancia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">
+                <input
+                  type="text"
+                  id="idProducto"
+                  class="form-control"
+                  placeholder="ID"
+                />
+              </th>
+              <td>
+                <input
+                  type="text"
+                  id="nombreProducto"
+                  class="form-control"
+                  placeholder="Nombre Producto"
+                />
+              </td>
+              <td>
+                <select
+                  id="medidaProducto"
+                  class="form-select"
+                  aria-label="Default select example"
+                >
+                  <option selected>Selecciona como se mide</option>
+                  <option value="Pz">Pz</option>
+                  <option value="Pq">Pq</option>
+                  <option value="Cj">Cj</option>
+                  <option value="Lt">Lt</option>
+                  <option value="Kg">Kg</option>
+                  <option value="Gr">Gr</option>
+                </select>
+              </td>
+              <td>
+                <input
+                  type="text"
+                  id="stockProducto"
+                  class="form-control"
+                  placeholder="Cantidad en almacen"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  id="fechaMaximaCompra"
+                  class="form-control datepicker"
+                  placeholder="Fecha máxima de compra"
+                  readonly
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  id="observacionesProducto"
+                  class="form-control"
+                  placeholder="Observaciones"
+                />
+              </td>
+              <td>
+                <select
+                  class="form-select"
+                  id="importanciaProducto"
+                  aria-label="Default select example"
+                >
+                  <option selected>Selecciona nivel de importancia</option>
+                  <option value="1" class="option-green">Puede esperar</option>
+                  <option value="2" class="option-yellow">
+                    Para esta semana
+                  </option>
+                  <option value="3" class="option-red">Urgente yayaya</option>
+                </select>
+              </td>
+              <td>
+                <div class="button-container-sm">
+                  <button type="button" id="btnAgregarProducto">
+                    Agregar producto
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Bucar Producto -->
+      <div class="window d-none" id="tablaBuscarProducto">
+        <h2>Buscar Producto</h2>
+        <form id="form-buscar-producto">
+          <div class="form-group">
+            <div class="input-container">
+              <input
+                type="text"
+                id="buscarProductoInput"
+                class="form-control"
+                placeholder="Ingrese Nombre o Id del producto"
+              />
+              <div class="button-container">
+                <button type="submit" id="btnBuscarProducto">Buscar</button>
+              </div>
+            </div>
+            <label id="mensajeErrorBuscar"></label>
+            <div id="mensajeEliminarContainer" class="mensaje-container">
+              <label id="mensajeEliminar"></label>
+            </div>
+          </div>
+        </form>
+        <div class="d-none" id="tablaResultadoBusqueda">
+          <!--Tabla buscar-->
+          <table class="table table-auto">
+            <thead>
+              <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Producto</th>
+                <th scope="col">Medida</th>
+                <th scope="col">Stock</th>
+                <th scope="col">Fecha máxima de compra</th>
+                <th scope="col">Observaciones</th>
+                <th scope="col">Nivel de importancia</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">
+                  <input
+                    type="text"
+                    id="idProductoBuscar"
+                    class="form-control"
+                    placeholder="ID"
+                    disabled
+                  />
+                </th>
+                <td>
+                  <input
+                    type="text"
+                    id="nombreProductoBuscar"
+                    class="form-control"
+                    placeholder="Nombre Producto"
+                  />
+                </td>
+                <td>
+                  <select
+                    id="medidaProductoBuscar"
+                    class="form-select"
+                    aria-label="Default select example"
+                  >
+                    <option selected>Selecciona como se mide</option>
+                    <option value="Pz">Pz</option>
+                    <option value="Pq">Pq</option>
+                    <option value="Cj">Cj</option>
+                    <option value="Lt">Lt</option>
+                    <option value="Kg">Kg</option>
+                    <option value="Gr">Gr</option>
+                  </select>
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    id="stockProductoBuscar"
+                    class="form-control"
+                    placeholder="Cantidad en almacen"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    id="fechaMaximaCompraBuscar"
+                    class="form-control datepicker"
+                    placeholder="Fecha máxima de compra"
+                    readonly
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    id="observacionesProductoBuscar"
+                    class="form-control"
+                    placeholder="Observaciones"
+                  />
+                </td>
+                <td>
+                  <select
+                    class="form-select"
+                    id="importanciaProductoBuscar"
+                    aria-label="Default select example"
+                  >
+                    <option selected>Selecciona nivel de importancia</option>
+                    <option value="1" class="option-green">
+                      Puede esperar
+                    </option>
+                    <option value="2" class="option-yellow">
+                      Para esta semana
+                    </option>
+                    <option value="3" class="option-red">Urgente yayaya</option>
+                  </select>
+                </td>
+                <td>
+                  <div class="button-container-sm">
+                    <button type="button" id="btnGuardarProducto">
+                      Guardar producto
+                    </button>
+
+                    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+                      <div class="modal-dialog">
+                          <div class="modal-content">
+                              <div class="modal-header">
+                                  <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmación de Eliminación</h5>
+                                  <button type="button" class="btn-close btn-dark" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                              </div>
+                              <div class="modal-body">
+                                  ¿Estás seguro de que deseas eliminar este producto?
+                              </div>
+                              <div class="modal-footer">
+                                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                  <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Eliminar</button>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+
+                    <button type="button" id="btnEliminarProducto">
+                      Eliminar producto
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!--TAbla inventario-->
+    <div class="window">
+      <h2>Inventario</h2>
+      <table class="table" id="tablaInventario">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <footer>
+      <p>
+        Sistema de Puntos - Mr Donut | Todos los derechos
+        reservados
+      </p>
+    </footer>
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/toastify-js"
+    ></script>
+    <script type="module" src="../js/admin/stock.js"></script>
+  </body>
+</html>

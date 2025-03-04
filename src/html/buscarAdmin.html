@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema de Puntos - Donas - Buscar</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
+    <link rel="stylesheet" href="../css/styleAdmin.css" />
+  </head>
+  <body>
+    <div class="background-image"></div>
+    <!-- Encabezado con imagen -->
+    <div class="logo-container">
+      <a href="./indexadmin.html">
+        <img src="../img/LOGO MONTO.png" alt="Logo" class="logo" />
+      </a>
+    </div>
+
+    <div class="container">
+      <div class="window">
+        <h2>Buscar al Cliente</h2>
+        <div>
+          <a
+            type="button"
+            class="btn-close btn-close-black close-button-container"
+            href="./indexadmin.html"
+            aria-label="Close"
+          ></a>
+        </div>
+
+        <form id="form-buscar">
+          <div class="form-group">
+            <div class="input-container">
+              <input
+                type="text"
+                id="buscarClienteInput"
+                class="form-control"
+                placeholder="Ingrese búsqueda (ID, Teléfono, Nombre, Correo)"
+              />
+            </div>
+
+            <div class="button-container">
+              <button type="button" id="buscarPorIdBtn" class="btn btn-primary">
+                ID
+              </button>
+              <button
+                type="button"
+                id="buscarPorTelefonoBtn"
+                class="btn btn-info"
+              >
+                Teléfono
+              </button>
+              <button
+                type="button"
+                id="buscarPorNombreBtn"
+                class="btn btn-success"
+              >
+                Nombre
+              </button>
+              <button
+                type="button"
+                id="buscarPorCorreoBtn"
+                class="btn btn-warning"
+              >
+                Correo
+              </button>
+            </div>
+            <span id="mensajeErrorBuscar"></span>
+          </div>
+        </form>
+        <!-- Contenedor para el listado de clientes encontrados -->
+        <div id="listaClientes" style="display: none; margin-top: 20px">
+          <h3>Clientes Encontrados</h3>
+          <div id="clientesResultados"></div>
+        </div>
+
+        <div id="datosClienteContainer" class="datos-container">
+          <!-- Agregar los datos del cliente aquí -->
+          <p class="cliente-nombre">
+            <strong>Nombre: </strong><span id="clienteNombre"></span>
+            <i id="flecha" class="fas fa-chevron-down"></i>
+          </p>
+          <p >
+            <strong>ID del Cliente:</strong> <span id="clienteId"></span>
+          </p> 
+          <p>
+            <strong>Puntos:</strong> <span id="clientePuntos"></span>
+          </p>
+          <p>
+            <strong>Fecha de Nacimiento:</strong>
+            <span id="clienteNacimiento"></span>
+          </p>
+          <div id="datosAdicionales">
+            <p><strong>Teléfono:</strong> <span id="clienteTelefono"></span></p>
+            <p><strong>Correo:</strong> <span id="clienteEmail"></span></p>
+            <p>
+              <strong>Fecha de Registro:</strong
+              ><span id="fechaRegistro"></span>
+            </p>
+            <p><strong>Alcaldía:</strong> <span id="clienteAlcaldia"></span></p>
+            <p><strong>Colonia:</strong> <span id="clienteColonia"></span></p>
+            <p>
+              <strong>Ultima fecha de puntos ingresados:</strong>
+              <span id="clienteUltimaFecha" class="mensaje-exito"></span>
+            </p>
+            <p>
+              <strong>Ultimos puntos ingresados:</strong>
+              <span id="clienteUltimosPuntos" class="mensaje-exito"></span>
+            </p>
+            <p>
+              <strong>Ultima fecha de puntos gastados:</strong>
+              <span id="clienteUltimaFechaGastar" class="mensaje-error"></span>
+            </p>
+            <p>
+              <strong>Ultimos puntos gastados:</strong>
+              <span
+                id="clienteUltimosPuntosGastar"
+                class="mensaje-error"
+              ></span>
+            </p>
+          </div>
+        </div>
+        <div id="puntos-container" class="datos-container">
+          <h2>Agregar puntos</h2>
+          <p class="cliente-id">
+            <strong>ID del Cliente:</strong> <span id="clienteIdAgregar"></span>
+          </p>
+          <p class="cliente-puntos-label">
+            <strong>Puntos:</strong> <span id="puntosAgregar"></span>
+          </p>
+          <div class="input-container">
+            <label for="puntosAgregar" class="label">Total de Compra:</label>
+            <input
+              type="text"
+              id="puntos"
+              class="input-text"
+              placeholder="Ingrese el total en ticket"
+            />
+            <div class="button-container">
+              <button id="calcularPuntosBtn">Agregar</button>
+            </div>
+          </div>
+          <span id="mensajeErrorPuntos"></span>
+          <div id="datosPuntosCliente" class="puntos-container">
+            <p><strong>Compra:</strong> <span id="totalCompra"></span></p>
+            <p>
+              <strong>Puntos iniciales:</strong>
+              <span id="puntosAnteriores"></span>
+            </p>
+            <p>
+              <strong>Puntos agregados:</strong>
+              <span id="puntosAgregados"></span>
+            </p>
+            <p>
+              <strong
+                >Finaliza con :<span id="puntosFinales"></span> puntos</strong
+              >
+            </p>
+          </div>
+        </div>
+
+        <div id="gastar-container" class="datos-container">
+          <h2>Gastar puntos</h2>
+          <p class="cliente-id">
+            <strong>ID del Cliente:</strong> <span id="IdGastar"></span>
+          </p>
+          <p class="cliente-puntos-label">
+            <strong>Puntos:</strong> <span id="PuntosGastar"></span>
+          </p>
+          <div class="input-container">
+            <label for="puntosGastar" class="label">Puntos a gastar:</label>
+            <input
+              type="number"
+              id="puntosGastar"
+              min="1"
+              class="input-text"
+              placeholder="Ingrese cantidad de puntos a gastar"
+            />
+            <div class="button-container">
+              <button type="button" id="calcularGastoPuntosBtn">Gastar</button>
+            </div>
+          </div>
+          <span id="mensajeErrorGastar"></span>
+          <div id="datosGastarCliente" class="puntos-container">
+            <p><strong>Puntos previos:</strong> <span id="puntosAnt"></span></p>
+            <p>
+              <strong>Puntos gastados:</strong>
+              <span id="puntosGastados"></span>
+            </p>
+            <p>
+              <strong>Puntos restantes:</strong>
+              <span id="totalSobrante"></span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Inputs para actualizar datos del cliente -->
+        <form class="form-floating">
+          <div id="actualizarClienteContainer" class="datos-container">
+            <h2>Actualizar Datos del Cliente</h2>
+            <div class="row">
+              <div class="col">
+                <div class="form-group">
+                  <label for="inputClienteId">ID del Cliente:</label>
+                  <input
+                    type="text"
+                    id="inputClienteId"
+                    class="form-control"
+                    disabled
+                  />
+                </div>
+              </div>
+              <div class="col">
+                <div class="form-group">
+                  <label for="inputClienteNombre">Nombre:</label>
+                  <input
+                    type="text"
+                    id="inputClienteNombre"
+                    class="form-control"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <div class="form-group">
+                  <label for="inputClienteAlcaldia">Alcaldía:</label>
+                  <input
+                    type="text"
+                    id="inputClienteAlcaldia"
+                    class="form-control"
+                  />
+                </div>
+              </div>
+              <div class="col">
+                <div class="form-group">
+                  <label for="inputClienteColonia">Colonia:</label>
+                  <input
+                    type="text"
+                    id="inputClienteColonia"
+                    class="form-control"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="inputClienteNacimiento">Fecha de Nacimiento:</label>
+              <input
+                type="date"
+                id="inputClienteNacimiento"
+                class="form-control"
+              />
+            </div>
+            <div class="row">
+              <div class="col">
+                <div class="form-group">
+                  <label for="inputClienteTelefono">Teléfono:</label>
+                  <input
+                    type="text"
+                    id="inputClienteTelefono"
+                    class="form-control"
+                  />
+                </div>
+              </div>
+              <div class="col">
+                <div class="form-group">
+                  <label for="inputClienteEmail">Correo:</label>
+                  <input
+                    type="email"
+                    id="inputClienteEmail"
+                    class="form-control"
+                  />
+                </div>
+              </div>
+            </div>
+            <span id="mensajeActualizar"></span>
+            <div class="button-container">
+              <button type="button" id="botonActualizar">Actualizar</button>
+            </div>
+          </div>
+        </form>
+        <!--  -->
+
+        <div class="button-container" id="botonesContainer">
+          <button type="button" id="ingresarPuntosBtn">Ingresar Puntos</button>
+          <button type="button" id="gastarPuntosBtn">Gastar Puntos</button>
+          <button id="actualizarDatosClienteBtn" type="button">
+            Actualizar Datos
+          </button>
+          <button type="button" id="eliminarClienteBtn">
+            Eliminar Cliente
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Agrega el siguiente div para la ventana emergente de confirmación -->
+    <div id="confirmacionPopup" class="confirmacion-popup">
+      <div
+        class="confirmacion-content d-flex justify-content-center align-items-center"
+      >
+        <p class="mb-3">¿Estás seguro de que deseas eliminar al cliente?</p>
+        <button id="confirmarBtn" class="btn btn-danger mx-2">Confirmar</button>
+        <button id="cancelarBtn" class="btn btn-secondary mx-2">
+          Cancelar
+        </button>
+      </div>
+    </div>
+
+    <footer>
+      <p>Sistema de Puntos - Mr Donut | Todos los derechos reservados</p>
+    </footer>
+    <script
+      defer
+      src="https://use.fontawesome.com/releases/v5.15.4/js/all.js"
+      integrity="sha384-rOA1PnstxnOBLzCLMcre8ybwbTmemjzdNlILg8O7z1lUkLXozs4DHonlDtnE7fpc"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/toastify-js"
+    ></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script type="module" src="../js/admin/buscarAdmin.js"></script>
+  </body>
+</html>

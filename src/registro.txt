@@ -1,0 +1,45 @@
+ya vi que tengo problemas en el registro de los usuarios ya sea en admin o en usuarios
+la parte critica es cuando busca el id del cliente para registrarlo 
+tambien no entiendo porque crea un usuario fake "fakepassword" en registro.js
+me marca error en el utlimoid.js
+hay algo mal al buscar y crear el nuevo cliente y creo hay cosas repetidas en registro}
+mejorar los mensajes de error en el formulario de registro (que aparezcan mensajes de ayuda debajo de los inputs sobre todo en contraseña numero y correo)
+
+
+update 17/12/24
+registra pero no cierra el modal y no vacia los inputs ni los errores ni muestra luego luego los datos del usuraio 
+revisar lineas 245 de registro.js y 122y 123
+
+update 24/ene/2025 
+la parte de registro.js ya quedo resuelta para un futuro modificarla y reciclar funciones en admin y en usuario
+me quede haciendo modificaciones y solucionando el poder actualizar datos del usuario
+toda la parte del admin necesita mejoras muy importantes ya que es mucho codigo y mucho de ese codigo se puede sintetizar y reutilizar 
+
+uodate 27/ene/2025
+ya se soluciono lo de actualizar los datos de los usuarios ya lo hace aunque se ve feo lo hace gracias a los indices  que se tienen que crear en cloud firestore
+estoy modificando lo vizual y haciendo que todo se bsuque desde em mismo input pero con diferentes valores de busqueda.
+quiero que cuando se busque por nombre y se encuentre mas de una coincidencia muestre todos los usuarios con es enombre y cad uno con sus trarjeta de botones
+tambien ando migrando mensajeError a showError.
+
+update 28/ene/2025
+se corrigio las busquedas ya se puede buscar en todos los botones y se ocultan y aparecen errores bien 
+ahora qquiero que la busqueda descrimine si es mayuscula o minuscula
+el buscarAdmin.hmtl se quedo con error por usar css desde html
+y buscarAdmin.js sigue teniendo muchos puntos de mejoras y de borrar redundacias, mejor manejo de errores, de ocultar contenedores, de limpiar labels y de mejor flujo del codigo
+
+update 29/ene/2025
+se esta trabajando en buscar el nombre sin importar si se escribe en mayusculas o minusculas
+se va a trabajar en poder actualizar los datos del cliente correctamente y en el manejo de contenedor de actualizar ya sea en validaciones y ocultar y en mensajes
+
+update 2/02/25
+YA se actualiza bien al cliente 
+estoy tratando de hacer mas fluido y mejor buscarAdmin.jsme quede en el manejo de errores y labels 
+estoy en gastar puntos 
+cuando tenga un error y me salga de gastar y regrese que el error desaparezca
+esto se puede hacer manejando correctamente la funcion limpiarLabels y limpieza de errores en inputs 
+
+update 4/02/2025
+se va a trabajar en la eliminacion del usuario en que se vea bien y que se elimine si se registra desde el admin
+trabajar en el registro desde admin
+hacer la interfaz mas bonita en telefono
+hacer que se pueda comercializar la pagina

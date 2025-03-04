@@ -1,0 +1,711 @@
+/* Estilos generales */
+/* Configuración básica del cuerpo del documento */
+body {
+  font-family: Arial, sans-serif;
+  /* Define la fuente de texto a utilizar */
+  background-color: #f3f3f3;
+  /* Establece el color de fondo del cuerpo */
+  margin: 0;
+  /* Elimina los márgenes del cuerpo */
+  padding: 0;
+  /* Elimina el relleno del cuerpo */
+}
+
+.background-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background-image: url("../img/tapiz.jpg");
+  background-size: cover;
+  filter: blur(1.5px);
+}
+
+/* Ajustes para el logo en el encabezado */
+.logo {
+  max-width: 150px; /* Ajusta el tamaño del logo */
+  height: auto; /* Mantén la proporción */
+  position: absolute; /* Posición absoluta para flexibilidad */
+  top: 10px; /* Espacio desde la parte superior */
+  left: 20px; /* Espacio desde el lado derecho */
+}
+
+
+/* Contenedor principal */
+.container {
+  max-width: 750px;
+  /* Establece el ancho máximo del contenedor */
+  margin: 20px auto;
+  /* Centra el contenedor horizontalmente y agrega un margen superior e inferior */
+ /* padding: 10px;
+  /* Agrega relleno al contenedor */
+  position: relative;
+  /* Añade esta línea para establecer una referencia de posición para el contenedor */
+}
+/* Contenedor principal */
+.container-inventario {
+  max-width: auto;
+  /* Establece el ancho máximo del contenedor */
+  margin: 20px auto;
+  /* Centra el contenedor horizontalmente y agrega un margen superior e inferior */
+  padding: 20px;
+  /* Agrega relleno al contenedor */
+  position: relative;
+  /* Añade esta línea para establecer una referencia de posición para el contenedor */
+}
+
+/* Título principal */
+h2 {
+  color: #333;
+  /* Establece el color del texto */
+  text-align: center;
+  /* Centra el texto horizontalmente */
+}
+/* Título principal */
+h1 {
+  color: #333;
+  /* Establece el color del texto */
+  text-align: center;
+  /* Centra el texto horizontalmente */
+}
+
+/* Grupo de formulario */
+.form-group {
+  margin-bottom: 10px;
+  /* Agrega un margen inferior al grupo de formulario */
+  position: relative;
+  /* Añade esta línea para establecer una referencia de posición para el grupo de formulario */
+}
+
+/* Etiqueta de texto */
+.label {
+  display: block;
+  /* Convierte la etiqueta en un bloque para ocupar todo el ancho disponible */
+  font-weight: lighter;
+  /* Establece el peso de la fuente en negrita */
+  margin: 10px;
+  font-size: 20px;
+  white-space: nowrap;
+  /* Evita que el texto se divida en varias líneas */
+  color: #000000;
+}
+
+/* Campo de entrada de texto */
+.input-text {
+  width: 30%;
+  /* Establece el ancho del campo de entrada de texto al 100% del contenedor */
+  padding: 5px;
+  /* Agrega relleno al campo de entrada de texto */
+  border: 1px solid #ccc;
+  /* Establece un borde alrededor del campo de entrada de texto */
+  border-radius: 3px;
+  /* Establece la esquina redondeada del campo de entrada de texto */
+  flex: 1;
+  /* Añade esta línea para que el campo de entrada de texto ocupe el espacio disponible */
+}
+
+/* Campo de entrada de texto y botón */
+.input-container {
+  display: flex;
+  /* Añade esta línea para utilizar flexbox */
+  align-items: center;
+  /* Añade esta línea para centrar verticalmente los elementos */
+}
+
+/* Contenedor para centrar verticalmente los botones */
+.center-button-v-a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Contenedor de botones */
+.button-container {
+  text-align: center;
+  /* Centra los botones horizontalmente */
+  margin-top: 10px;
+  /* Agrega un margen superior al contenedor de botones */
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Estilo de los botones */
+.button-container a,
+.button-container button {
+  display: inline-block;
+  text-decoration: none;
+  padding: 15px 30px;
+  /* Establece el relleno interno del botón */
+  background-color: #bd228e;
+  /* Establece el color de fondo del botón */
+  color: #fff;
+  /* Establece el color del texto del botón */
+  border-radius: 50px;
+  /* Establece la esquina redondeada del botón */
+  cursor: pointer;
+  /* Cambia el cursor al pasar por encima del botón */
+  margin-right: 10px;
+  /* Agrega un margen derecho entre los botones */
+  margin-bottom: 10px;
+  /* Agrega un margen inferior entre los botones */
+  font-size: 20px;
+  /* Establece el tamaño de la fuente del botón */
+  position:relative;
+  overflow: hidden;
+  border: none;
+  box-shadow: none;
+  /* Quita el efecto de relieve */
+  white-space: nowrap;
+  /* Evita que el texto se divida en varias líneas */
+}
+.button-container-sm button {
+  display: inline-block;
+  text-decoration: none;
+  padding: 10px 10px;
+  /* Establece el relleno interno del botón */
+  background-color: #bd228e;
+  /* Establece el color de fondo del botón */
+  color: #fff;
+  /* Establece el color del texto del botón */
+  border-radius: 20px;
+  /* Establece la esquina redondeada del botón */
+  cursor: pointer;
+  /* Cambia el cursor al pasar por encima del botón */
+  margin-right: 10px;
+  /* Agrega un margen derecho entre los botones */
+  margin-bottom: 10px;
+  /* Agrega un margen inferior entre los botones */
+  font-size: 15px;
+  /* Establece el tamaño de la fuente del botón */
+  border: none;
+}
+.button-container-sm:hover button {
+  background-color: #a11884;
+}
+.button-container:hover button,
+.button-container:hover a {
+  background-color: #a11884;
+}
+
+#buscarClienteBtn:hover {
+  background-color: #6e175b;
+}
+.button-container a:hover::before {
+  transform: translateX(0);
+}
+
+/* Último botón del contenedor */
+.button-container a:last-child {
+  margin-right: 0;
+  /* Elimina el margen derecho del último botón */
+}
+
+/* Contenedor de botones */
+.button-container-telefono {
+  text-align: center;
+  /* Centra los botones horizontalmente */
+  margin-top: 10px;
+  /* Agrega un margen superior al contenedor de botones */
+  margin-right: 20px;
+}
+
+/* Estilo de los botones */
+.button-container-telefono button {
+  display: inline-block;
+  text-decoration: none;
+  padding: 15px 30px;
+  /* Establece el relleno interno del botón */
+  background-color: #2277bd;
+  /* Establece el color de fondo del botón */
+  color: #fff;
+  /* Establece el color del texto del botón */
+  border-radius: 50px;
+  /* Establece la esquina redondeada del botón */
+  cursor: pointer;
+  /* Cambia el cursor al pasar por encima del botón */
+  margin-right: 10px;
+  /* Agrega un margen derecho entre los botones */
+  margin-bottom: 10px;
+  /* Agrega un margen inferior entre los botones */
+  font-size: 20px;
+  /* Establece el tamaño de la fuente del botón */
+  position: relative;
+  overflow: hidden;
+  border: none;
+  box-shadow: none;
+  /* Quita el efecto de relieve */
+}
+.button-container-telefono:hover button{
+  background-color: #115391;
+}
+#inputTelefono {
+  display: none;
+}
+#form-buscar-telefono {
+  display: none;
+}
+/* Estilos de la ventana */
+.window {
+  background-color: #fff;
+  /* Establece el color de fondo de la ventana */
+  padding: 20px;
+  /* Agrega relleno interno a la ventana */
+  border-radius: 5px;
+  /* Establece la esquina redondeada de la ventana */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  /* Agrega una sombra a la ventana */
+  text-align: center;
+  margin-top: 20px;
+}
+.window button {
+  margin: 10 10px;
+}
+
+/* Estilos del pie de página */
+footer {
+  background-color: #333;
+  /* Establece el color de fondo del pie de página */
+  padding: 10px;
+  /* Agrega relleno interno al pie de página */
+  color: #fff;
+  /* Establece el color del texto del pie de página */
+  text-align: center;
+  /* Centra el texto del pie de página */
+  font-size: 12px;
+  position: fixed;
+  bottom: 0%;
+  width: 100%;
+}
+
+footer p {
+  margin: 0;
+  /* Elimina los márgenes del párrafo en el pie de página */
+}
+
+#leyenda-info{
+  text-align: center;
+  font-size: 10px;
+  margin:auto;
+}
+#nombre-cliente{
+  font-size: 100px;
+}
+
+/* Estilos de la etiqueta de imagen */
+img {
+  display: block;
+  /* Convierte la imagen en un bloque */
+  margin: 0 auto;
+  /* Centra la imagen horizontalmente */
+  max-width: 60%;
+  /* Establece el ancho máximo de la imagen al 100% del contenedor */
+  height: auto;
+  /* Ajusta la altura de la imagen de forma automática */
+  margin-bottom: 10px;
+  /* Agrega un margen inferior a la imagen */
+}
+
+.error {
+  border-color: red;
+  animation: shake 0.5s;
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-10px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(10px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.valid {
+  border-color: green;
+}
+
+.input-date.error {
+  border: 1px solid #fa1616;
+  /* Establece un borde alrededor del campo */
+  animation: shake 0.5s;
+}
+
+#exito {
+  display: none;
+  text-align: center;
+}
+
+.cliente-id {
+  font-size: 30px;
+  text-align: center;
+}
+
+.cliente-nombre {
+  font-size: 25px;
+  text-align: center;
+}
+
+#botonesContainer {
+  display: none;
+}
+
+.cliente-puntos-label {
+  text-align: center;
+  font-size: 25px;
+}
+
+/*-------------------*/
+.puntos-container {
+  display: none;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.puntos-container input {
+  margin-right: 10px;
+}
+
+.puntos-container button {
+  margin-left: 10px;
+}
+
+.mensaje-error {
+  color: rgb(233, 37, 37);
+  font-size: 18px;
+}
+
+.mensaje-exito {
+  color: green;
+  font-size: 17px;
+  text-align: center;
+}
+
+.puntos-total {
+  color: rgb(0, 255, 98);
+}
+
+.input-text.success {
+  border-color: green;
+}
+
+.mensaje-container {
+  margin-top: 5px;
+  display: none;
+}
+
+.datos-container {
+  display: none;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.datos-container label,
+.datos-container input,
+.datos-container button {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 10px;
+}
+
+.input-date {
+  -webkit-appearance: none;
+  /* Deshabilita los estilos nativos del navegador */
+  -moz-appearance: none;
+  appearance: none;
+  border: 1px solid #ccc;
+  /* Establece un borde alrededor del campo */
+  border-radius: 4px;
+  /* Establece la esquina redondeada del campo */
+  padding: 5px;
+  /* Agrega relleno interno al campo */
+  width: 30%;
+  /* Establece el ancho del campo al 100% */
+  box-sizing: border-box;
+  /* Incluye el relleno y el borde en el ancho total del campo */
+}
+
+/* Cambia el color de fondo y el color del texto cuando el campo tiene el foco */
+.input-date:focus {
+  background-color: #f9f9f9;
+  /* Cambia el color de fondo cuando el campo tiene el foco */
+  outline: none;
+  /* Elimina el contorno alrededor del campo cuando tiene el foco */
+}
+
+.iniciar-sesion-button {
+  display: block;
+  background-color: #bd228e;
+  color: #fff;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 10px;
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.iniciar-sesion-button:hover button{
+  background-color: #ad206e;
+}
+
+.btn-container-telefono {
+  text-align: center;
+  /* Centra los botones horizontalmente */
+  margin-top: 10px;
+  /* Agrega un margen superior al contenedor de botones */
+  margin-right: 20px;
+}
+
+.btn-telefono {
+  background-color: #2e7ac2;
+  display: inline-block;
+  text-decoration: none;
+  padding: 10px 10px;
+  /* Establece el color de fondo del botón */
+  color: #fff;
+  /* Establece el color del texto del botón */
+  border-radius: 50px;
+  /* Establece la esquina redondeada del botón */
+  cursor: pointer;
+  /* Cambia el cursor al pasar por encima del botón */
+  margin-right: 5px;
+  /* Agrega un margen derecho entre los botones */
+  margin-bottom: 5px;
+  /* Agrega un margen inferior entre los botones */
+  font-size: 15px;
+  /* Establece el tamaño de la fuente del botón */
+  position: relative;
+  overflow: hidden;
+  border: none;
+  box-shadow: none;
+  /* Quita el efecto de relieve */
+}
+.btn-telefono:hover{
+  background-color: #1a4f81 ;
+}
+
+.button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 100%;
+  border: none;
+  background-color: #30c04f;
+}
+
+.button:hover {
+  background-color: #2bac47;
+}
+
+.close-button {
+  display: flex;
+  background-color: #f14545;
+  color: #fff;
+  border: none;
+  padding: 5px 5px; /* Reducir el tamaño del padding para hacer el botón más pequeño */
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.close-button:hover {
+  background-color: #cc0000;
+}
+
+.center-button-c-a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px; /* Ajusta la altura según tus necesidades */
+}
+/* Agrega estos estilos en tu hoja de estilos (puedes ajustar el tamaño y posición según tus preferencias) */
+.close-button-container {
+  position: absolute;
+  top: 15px;
+  right: 30px;
+}
+
+#puntos-container {
+  display: none;
+}
+
+#totalPuntos {
+  display: none;
+}
+
+/* Estilos para el div de datos adicionales */
+#datosAdicionales {
+  display: none;
+  padding: 10px;
+  background-color: #f0f0f0;
+}
+
+#datosAdicionales.active {
+  display: block;
+}
+
+/* Estilos para la flecha */
+#flecha {
+  font-size: 20px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+#ingresarPuntosBtn {
+  background-color: #27963f;
+}
+#ingresarPuntosBtn:hover {
+  background-color: #156426;
+}
+#calcularPuntosBtn {
+  background-color: #00a724;
+}
+#calcularPuntosBtn:hover {
+  background-color: #006b18;
+}
+#gastarPuntosBtn {
+  background-color: #ff036c;
+}
+#gastarPuntosBtn:hover {
+  background-color: #b6044e;
+}
+#calcularGastoPuntosBtn {
+  background-color: rgb(245, 32, 32);
+}
+#calcularGastoPuntosBtn:hover{
+  background-color: rgb(179, 39, 39);
+}
+#eliminarClienteBtn {
+  background-color: rgb(235, 61, 61);
+}
+#eliminarClienteBtn:hover{
+  background-color: rgb(179, 48, 48);
+}
+#actualizarDatosClienteBtn {
+  background-color: rgb(61, 61, 226);
+}
+#actualizarDatosClienteBtn:hover {
+  background-color: rgb(40, 40, 170);
+}
+
+#botonActualizar {
+  background-color: rgb(34, 34, 180);
+}
+#botonActualizar:hover {
+  background-color: rgb(25, 25, 139);
+}
+
+/* Estilos para la ventana emergente de confirmación */
+.confirmacion-popup {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.confirmacion-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.confirmacion-content p {
+  margin: 0 0 10px;
+}
+
+.confirmacion-content button {
+  margin-right: 10px;
+}
+
+.option-green {
+  background-color: #5cb85c; /* Verde */
+}|
+.option-yellow {
+  background-color: #ffc107; /* Amarillo */
+  color: #000; /* Texto oscuro para legibilidad */
+}
+.option-red {
+  background-color: #f7211a; /* Rojo */
+  color: #fff; /* Texto blanco para legibilidad */
+}
+
+.importancia-indicator {
+  width: 150px;
+  height: 20px;
+  border-radius: 15%;
+}
+
+.importancia-indicator.green {
+  background-color: #9ccc65;
+}
+
+.importancia-indicator.yellow {
+  background-color: #ffeb3b;
+}
+
+.importancia-indicator.red {
+  background-color: red;
+}
+
+.category-row {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.linea {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#listaClientes {
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.cliente-item {
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+.seleccionar-btn {
+  margin-top: 10px;
+}
