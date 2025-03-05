@@ -1,16 +1,13 @@
-/* Estilos generales */
-/* Configuración básica del cuerpo del documento */
+/* 🔹 Estilos Generales */
 body {
   font-family: Arial, sans-serif;
-  /* Define la fuente de texto a utilizar */
   background-color: #f3f3f3;
-  /* Establece el color de fondo del cuerpo */
   margin: 0;
-  /* Elimina los márgenes del cuerpo */
   padding: 0;
-  /* Elimina el relleno del cuerpo */
+  text-align: center;
 }
 
+/* 🔹 Fondo */
 .background-image {
   position: fixed;
   top: 0;
@@ -708,4 +705,102 @@ img {
 
 .seleccionar-btn {
   margin-top: 10px;
+}
+
+
+
+
+/* 🔹 Logo */
+.logo-container {
+  text-align: center;
+  margin: 20px 0;
+}
+.logo {
+  max-width: 150px;
+  height: auto;
+}
+
+/* 🔹 Título */
+.admin-title {
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* 🔹 Botones */
+.button-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.admin-button {
+  display: inline-block;
+  width: 80%;
+  max-width: 300px;
+  text-decoration: none;
+  padding: 15px;
+  background-color: #bd228e;
+  color: #fff;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: bold;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.admin-button:hover {
+  background-color: #a11884;
+}
+
+/* 🔹 Botón de Cerrar Sesión */
+.logout-container {
+  margin-top: 20px;
+}
+
+.logout-button {
+  display: inline-block;
+  padding: 12px 25px;
+  background-color: #f14545;
+  color: #fff;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.logout-button:hover {
+  background-color: #cc0000;
+}
+
+/* 🔹 Pie de Página */
+footer {
+  background-color: #333;
+  padding: 10px;
+  color: #fff;
+  font-size: 12px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+footer p {
+  margin: 0;
+}
+
+/* 🔹 Responsividad */
+@media (max-width: 768px) {
+  .admin-title {
+    font-size: 24px;
+  }
+
+  .admin-button {
+    width: 90%;
+    font-size: 16px;
+  }
+
+  .logout-button {
+    font-size: 14px;
+  }
 }
