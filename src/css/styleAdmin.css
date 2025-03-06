@@ -20,15 +20,15 @@ body {
   filter: blur(1.5px);
 }
 
-/* Ajustes para el logo en el encabezado */
-.logo {
-  max-width: 150px; /* Ajusta el tamaño del logo */
-  height: auto; /* Mantén la proporción */
-  position: absolute; /* Posición absoluta para flexibilidad */
-  top: 10px; /* Espacio desde la parte superior */
-  left: 20px; /* Espacio desde el lado derecho */
+/* 🔹 Logo */
+.logo-container {
+  text-align: center;
+  margin: 20px 0;
 }
-
+.logo {
+  max-width: 150px;
+  height: auto;
+}
 
 /* Contenedor principal */
 .container {
@@ -708,26 +708,13 @@ img {
 }
 
 
-
-
-/* 🔹 Logo */
-.logo-container {
-  text-align: center;
-  margin: 20px 0;
-}
-.logo {
-  max-width: 150px;
-  height: auto;
-}
-
 /* 🔹 Título */
 .admin-title {
   font-size: 28px;
   color: #333;
   margin-bottom: 20px;
 }
-
-/* 🔹 Botones */
+/* 🔹 Contenedor de los botones */
 .button-group {
   display: flex;
   flex-direction: column;
@@ -735,29 +722,50 @@ img {
   gap: 15px;
 }
 
+/* 🔹 Contenedor para las primeras dos opciones en la misma fila */
+.button-row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 600px;
+}
+
+/* 🔹 Estilo de los botones */
 .admin-button {
   display: inline-block;
-  width: 80%;
-  max-width: 300px;
   text-decoration: none;
-  padding: 15px;
+  padding: 15px 30px;
   background-color: #bd228e;
   color: #fff;
   border-radius: 50px;
   font-size: 18px;
   font-weight: bold;
   transition: background-color 0.3s ease-in-out;
+  text-align: center;
+  width: 45%; /* Para que se alineen en la misma fila */
+  min-width: 180px; /* Asegurar buena visibilidad */
 }
 
 .admin-button:hover {
   background-color: #a11884;
 }
 
-/* 🔹 Botón de Cerrar Sesión */
-.logout-container {
-  margin-top: 20px;
+/* 🔹 Inventario centrado en una fila */
+.inventory-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
+/* 🔹 Botón de Cerrar Sesión centrado */
+.logout-container {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+/* 🔹 Botón de Cerrar Sesión */
 .logout-button {
   display: inline-block;
   padding: 12px 25px;
@@ -774,33 +782,121 @@ img {
   background-color: #cc0000;
 }
 
-/* 🔹 Pie de Página */
-footer {
-  background-color: #333;
-  padding: 10px;
-  color: #fff;
-  font-size: 12px;
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-}
-
-footer p {
-  margin: 0;
-}
-
-/* 🔹 Responsividad */
+/* 🔹 Responsividad: En móviles, los botones estarán en una columna */
 @media (max-width: 768px) {
-  .admin-title {
-    font-size: 24px;
+  .button-row {
+    flex-direction: column;
+    align-items: center;
   }
 
   .admin-button {
-    width: 90%;
-    font-size: 16px;
+    width: 80%;
   }
+}
 
-  .logout-button {
-    font-size: 14px;
+
+
+/* 🔹 Botón de Configuración (Engranaje en la esquina superior derecha) */
+.config-button {
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  background-color: #bd228e;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  font-size: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.config-button i {
+  font-size: 24px; /* Tamaño del engranaje */
+}
+
+.config-button:hover {
+  background-color: #a11884;
+}
+
+/* 🔹 Modal de Configuración (Inicialmente oculto) */
+.config-modal {
+  display: none; /* Ahora sí estará oculto por defecto */
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+}
+
+/* 🔹 Contenido del Modal */
+.config-modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%; /* Más flexible en móviles */
+  max-width: 500px; /* No se extiende demasiado en pantallas grandes */
+  text-align: center;
+  position: relative;
+}
+
+/* 🔹 Botón de Cerrar (X) en la esquina superior derecha */
+.close-config {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-config:hover {
+  color: red;
+}
+
+/* 🔹 Estilos para Inputs */
+.config-modal-content input {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+/* 🔹 Botón Guardar Cambios */
+#saveConfig {
+  background-color: #27963f;
+  color: white;
+  padding: 10px;
+  border: none;
+  width: 100%;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#saveConfig:hover {
+  background-color: #156426;
+}
+
+/* 🔹 Responsividad del Modal */
+@media (min-width: 768px) {
+  .config-modal-content {
+    width: 60%; /* Más ancho en pantallas medianas */
+    max-width: 600px; /* Límite máximo en pantallas grandes */
+  }
+}
+
+@media (min-width: 1024px) {
+  .config-modal-content {
+    width: 50%; /* Más grande en escritorio */
+    max-width: 700px;
   }
 }

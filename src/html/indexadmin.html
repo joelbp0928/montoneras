@@ -14,6 +14,11 @@
       type="text/css"
       href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
     />
+    <!-- FontAwesome CDN para los iconos -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
   </head>
   <body>
     <div class="background-image"></div>
@@ -25,23 +30,65 @@
       </a>
     </div>
 
+    <!-- 🔹 Botón de Configuración (Engranaje) -->
+    <button id="configButton" class="config-button">
+      <i class="fas fa-cog"></i>
+      <!-- Ahora sí es un engranaje ⚙️ -->
+    </button>
+
     <!-- 🔹 Contenedor Principal -->
     <div class="container text-center">
       <h1 class="admin-title">Modo Administrador</h1>
 
-      <!-- 🔹 Botones de Navegación -->
+      <!-- 🔹 Contenedor de botones -->
       <div class="button-group">
-        <a href="registrarAdmin.html" class="admin-button">Registrar Cliente</a>
-        <a href="buscarAdmin.html" class="admin-button">Buscar Cliente</a>
-        <a href="stock.html" class="admin-button">Inventario</a>
-      </div>
+        <!-- 🔹 Registrar Cliente y Buscar Cliente en la misma línea -->
+        <div class="button-row">
+          <a href="registrarAdmin.html" class="admin-button"
+            >Registrar Cliente</a
+          >
+          <a href="buscarAdmin.html" class="admin-button">Buscar Cliente</a>
+        </div>
 
-      <!-- 🔹 Botón de Cerrar Sesión -->
-      <div class="logout-container">
-        <a href="#" class="logout-button" id="logout">Cerrar Sesión</a>
+        <!-- 🔹 Inventario en una fila centrada -->
+        <div class="inventory-container">
+          <a href="stock.html" class="admin-button">Inventario</a>
+        </div>
+
+        <!-- 🔹 Cerrar sesión centrado -->
+        <div class="logout-container">
+          <a href="#" class="logout-button" id="logout">Cerrar Sesión</a>
+        </div>
       </div>
     </div>
+    <!-- 🔹 Modal de Configuración (Inicialmente oculto) -->
+    <div id="configModal" class="config-modal">
+      <div class="config-modal-content">
+        <!-- Botón de cerrar modal -->
+        <span class="close-config">&times;</span>
 
+        <h2>Configuración</h2>
+
+        <!-- Cambiar Nombre del Restaurante -->
+        <label for="restaurantName">Nombre del Restaurante:</label>
+        <input
+          type="text"
+          id="restaurantName"
+          placeholder="Escribe el nombre"
+        />
+
+        <!-- Subir Logo -->
+        <label for="logoUpload">Subir Logo:</label>
+        <input type="file" id="logoUpload" accept="image/*" />
+
+        <!-- Subir Imagen de Fondo -->
+        <label for="backgroundUpload">Subir Imagen de Fondo:</label>
+        <input type="file" id="backgroundUpload" accept="image/*" />
+
+        <!-- Guardar Cambios -->
+        <button id="saveConfig">Guardar Cambios</button>
+      </div>
+    </div>
     <!-- 🔹 Pie de Página -->
     <footer>
       <p>Sistema de Puntos - Mr Donut | Todos los derechos reservados</p>
@@ -51,9 +98,7 @@
       type="text/javascript"
       src="https://cdn.jsdelivr.net/npm/toastify-js"
     ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"
-    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="../js/admin/mainAdmin.js"></script>
   </body>
 </html>
