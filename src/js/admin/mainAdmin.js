@@ -1,97 +1,98 @@
-import { auth, db, firebaseConfig } from "../firebase.js";
+// 📦 Importamos las funciones necesarias desde otros archivos
+import { uploadImage, saveConfigToFirestore, getConfigFromFirestore } from "../storage.js";
+import { auth, db, firebaseConfig, storage } from "../firebase.js";
 import { showmessage } from "../showmessage.js";
-import "../cerrar_sesion.js";
+import "../cerrar_sesion.js";  // 🔒 Manejamos el cierre de sesión
+import { initMenuConfig } from "./menuConfig.js";
 
-// 🔹 Importar funciones de Firestore necesarias
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js";
-
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-storage.js";
-
-
-// 🔹 Cargar configuración almacenada en Firestore al abrir la página
-document.addEventListener("DOMContentLoaded", async function () {
-  try {
-    const docRef = doc(db, "configuracion", "admin"); // Referencia al documento en Firestore
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-
-      if (data.restaurantName) {
-        document.getElementById("restaurantName").value = data.restaurantName;
-      }
-      if (data.logo) {
-        document.querySelector(".logo").src = data.logo;
-      }
-      if (data.background) {
-        document.querySelector(".background-image").style.backgroundImage = `url(${data.background})`;
-      }
-    }
-  } catch (error) {
-    console.error("Error al recuperar configuración:", error);
-  }
-});
-
-// 🔹 Funcionalidad para abrir y cerrar el modal de configuración
+// 🟢 Inicializar configuración del menú cuando la página cargue
 document.addEventListener("DOMContentLoaded", function () {
-  const configButton = document.getElementById("configButton");
-  const configModal = document.getElementById("configModal");
-  const closeConfig = document.querySelector(".close-config");
-
-  configButton.addEventListener("click", function () {
-    configModal.style.display = "flex";
-  });
-
-  closeConfig.addEventListener("click", function () {
-    configModal.style.display = "none";
-  });
-
-  window.addEventListener("click", function (event) {
-    if (event.target === configModal) {
-      configModal.style.display = "none";
-    }
-  });
+  initMenuConfig();
 });
 
-// 🔹 Guardar configuración en Firestore
-document.getElementById("saveConfig").addEventListener("click", async function () {
-  const restaurantName = document.getElementById("restaurantName").value;
-  const logoInput = document.getElementById("logoUpload").files[0];
-  const backgroundInput = document.getElementById("backgroundUpload").files[0];
 
-  let configData = { restaurantName: restaurantName };
+// 🟢 Evento que se ejecuta cuando la página ha cargado completamente
+document.addEventListener("DOMContentLoaded", async function () {
+  const loadingElement = document.getElementById("loading"); // 🔹 Referencia al loader
 
-  if (logoInput) {
-    const reader = new FileReader();
-    reader.onload = async function (e) {
-      configData.logo = e.target.result;
-      await saveConfigToFirestore(configData);
-    };
-    reader.readAsDataURL(logoInput);
-  }
-
-  if (backgroundInput) {
-    const reader = new FileReader();
-    reader.onload = async function (e) {
-      configData.background = e.target.result;
-      await saveConfigToFirestore(configData);
-    };
-    reader.readAsDataURL(backgroundInput);
-  }
-
-  if (!logoInput && !backgroundInput) {
-    await saveConfigToFirestore(configData);
-  }
-
-  configModal.style.display = "none";
-});
-
-// 🔹 Función para guardar la configuración en Firestore
-async function saveConfigToFirestore(configData) {
   try {
-    await setDoc(doc(db, "configuracion", "admin"), configData);
-    alert("Configuración guardada correctamente en Firebase Firestore.");
+    loadingElement.style.display = "flex"; // 🔹 Mostrar loader
+
+    const config = await getConfigFromFirestore();
+
+    if (config) {
+      document.getElementById("restaurantName").value = config.restaurantName || "";
+      if (config.logo) document.querySelector(".logo").src = config.logo;
+      if (config.background) document.querySelector(".background-image").style.backgroundImage = `url(${config.background})`;
+    }
   } catch (error) {
-    console.error("Error guardando en Firestore:", error);
+    showmessage("❌ Error al cargar configuración.", "error");
+    console.error("❌ Error al cargar configuración:", error);
+  } finally {
+    loadingElement.style.display = "none"; // 🔹 Ocultar loader después de la carga
   }
-}
+});
+
+
+// 🔹 Evento que se ejecuta cuando el usuario guarda la configuración
+document.getElementById("saveConfig").addEventListener("click", async function () {
+  // 📦 Capturamos los valores ingresados en los inputs
+  const restaurantName = document.getElementById("restaurantName").value;
+  const logoInput = document.getElementById("logoUpload").files[0];  // 🖼️ Archivo de logo
+  const backgroundInput = document.getElementById("backgroundUpload").files[0];  // 🎨 Archivo de fondo
+
+  try {
+    // 🔹 Obtenemos la configuración actual de Firestore para mantener los valores previos
+    const currentConfig = await getConfigFromFirestore();
+
+    let logoURL = currentConfig.logo || null;  // 🖼️ Mantener logo anterior si no se sube uno nuevo
+    let backgroundURL = currentConfig.background || null;  // 🎨 Mantener fondo anterior si no se sube uno nuevo
+
+    // 📤 Subimos las imágenes a Firebase Storage si el usuario seleccionó alguna nueva
+    if (logoInput) logoURL = await uploadImage(logoInput, "logo.png");
+    if (backgroundInput) backgroundURL = await uploadImage(backgroundInput, "background.png");
+
+    // 📦 Creamos un objeto con la nueva configuración, asegurando que los valores previos sean respetados
+    const updatedConfig = {
+      restaurantName: restaurantName || currentConfig.restaurantName,  // ✅ Si no se cambia el nombre, mantener el anterior
+      logo: logoURL,  // ✅ Mantiene la imagen anterior si no se sube una nueva
+      background: backgroundURL  // ✅ Mantiene la imagen anterior si no se sube una nueva
+    };
+
+    // 💾 Guardamos la configuración actualizada en Firestore
+    await saveConfigToFirestore({
+      restaurantName: updatedConfig.restaurantName,
+      logo: updatedConfig.logo,
+      background: updatedConfig.background
+    }, "admin");
+
+
+    // 🔄 Actualizamos la vista con los nuevos valores guardados
+    if (updatedConfig.logo) document.querySelector(".logo").src = updatedConfig.logo;
+    if (updatedConfig.background) document.querySelector(".background-image").style.backgroundImage = `url(${updatedConfig.background})`;
+
+    // 🟢 Cerrar modal con Bootstrap después de guardar
+    const modalElement = document.getElementById("configModal");
+    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+    if (modalInstance) modalInstance.hide();
+
+    // ✅ Notificamos al usuario que la configuración se guardó correctamente
+    showmessage("✔ Configuración guardada correctamente.", "success");
+
+  } catch (error) {
+    // ❌ Si hay un error, lo notificamos
+    showmessage("❌ Error al guardar la configuración.", "error");
+    console("❌ Error al guardar la configuración.", error);
+    // alert("❌ Error al guardar la configuración.");
+  }
+});
+
+
+const cerrarSesionBtn = document.getElementById("logout");
+
+cerrarSesionBtn.addEventListener("click", () => {
+  // showmessage("Cerrando sesión...", "warning"); // Mostrar mensaje de "Cerrando sesión" por 1 segundo (1000 ms)
+  setTimeout(() => {
+    window.location.href = "../index.html"; // Redirigir a la página "../index.html" después de 1 segundo
+  }, 1000);
+});

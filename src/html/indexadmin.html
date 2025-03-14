@@ -30,10 +30,13 @@
       </a>
     </div>
 
-    <!-- 🔹 Botón de Configuración (Engranaje) -->
-    <button id="configButton" class="config-button">
+    <!-- 🔹 Botón de Configuración (Usando Bootstrap) -->
+    <button
+      class="btn btn-primary config-button"
+      data-bs-toggle="modal"
+      data-bs-target="#configModal"
+    >
       <i class="fas fa-cog"></i>
-      <!-- Ahora sí es un engranaje ⚙️ -->
     </button>
 
     <!-- 🔹 Contenedor Principal -->
@@ -61,34 +64,112 @@
         </div>
       </div>
     </div>
-    <!-- 🔹 Modal de Configuración (Inicialmente oculto) -->
-    <div id="configModal" class="config-modal">
-      <div class="config-modal-content">
-        <!-- Botón de cerrar modal -->
-        <span class="close-config">&times;</span>
+    <!-- 🔹 Modal de Configuración Mejorado -->
+    <div id="configModal" class="modal fade" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <!-- Ajustamos el tamaño a "lg" para mejor visualización -->
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title">Configuración</h2>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
 
-        <h2>Configuración</h2>
+          <div class="modal-body">
+            <!-- 🔹 Tabs de Configuración -->
+            <ul class="nav nav-tabs" id="configTabs">
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  data-bs-toggle="tab"
+                  href="#generalConfig"
+                  >General</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#menuConfig"
+                  >Menú</a
+                >
+              </li>
+            </ul>
 
-        <!-- Cambiar Nombre del Restaurante -->
-        <label for="restaurantName">Nombre del Restaurante:</label>
-        <input
-          type="text"
-          id="restaurantName"
-          placeholder="Escribe el nombre"
-        />
+            <!-- 🔹 Contenido de las Pestañas -->
+            <div class="tab-content mt-3">
+              <!-- 📑 Configuración General -->
+              <div id="generalConfig" class="tab-pane fade show active">
+                <label for="restaurantName">Nombre del Restaurante:</label>
+                <input
+                  type="text"
+                  id="restaurantName"
+                  class="form-control"
+                  placeholder="Escribe el nombre"
+                />
 
-        <!-- Subir Logo -->
-        <label for="logoUpload">Subir Logo:</label>
-        <input type="file" id="logoUpload" accept="image/*" />
+                <label for="logoUpload" class="mt-2">Subir Logo:</label>
+                <input
+                  type="file"
+                  id="logoUpload"
+                  class="form-control"
+                  accept="image/*"
+                />
 
-        <!-- Subir Imagen de Fondo -->
-        <label for="backgroundUpload">Subir Imagen de Fondo:</label>
-        <input type="file" id="backgroundUpload" accept="image/*" />
+                <label for="backgroundUpload" class="mt-2"
+                  >Subir Imagen de Fondo:</label
+                >
+                <input
+                  type="file"
+                  id="backgroundUpload"
+                  class="form-control"
+                  accept="image/*"
+                />
+              </div>
 
-        <!-- Guardar Cambios -->
-        <button id="saveConfig">Guardar Cambios</button>
+              <!-- 🍽️ Configuración del Menú -->
+              <div id="menuConfig" class="tab-pane fade">
+                <h5>Imágenes del Menú</h5>
+                <p class="text-muted">
+                  Arrastra y suelta las imágenes para cambiar el orden.
+                </p>
+
+                <!-- 🔹 Contenedor dinámico de imágenes -->
+                <div id="menuImagesContainer" class="menu-images-container">
+                  <!-- 📌 Imágenes del menú se cargarán aquí dinámicamente -->
+                </div>
+
+                <!-- 🔹 Botón para agregar imágenes (Máximo 10) -->
+                <div id="addImageContainer" class="add-image">
+                  <input
+                    type="file"
+                    id="menuImageInput"
+                    accept="image/*"
+                    hidden
+                  />
+                  <button id="addImageButton" class="btn btn-outline-primary">
+                    <i class="fas fa-plus"></i> Agregar Imagen
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button id="saveConfig" class="btn btn-primary">
+              Guardar Cambios
+            </button>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- 🔹 Loader Mejorado -->
+    <div id="loading">
+      <div class="spinner"></div>
+      <p>Cargando configuración...</p>
+    </div>
+
     <!-- 🔹 Pie de Página -->
     <footer>
       <p>Sistema de Puntos - Mr Donut | Todos los derechos reservados</p>

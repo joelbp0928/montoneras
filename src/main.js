@@ -12,6 +12,7 @@ import './js/iniciar_sesion.js'
 import './js/loginTelefono.js'
 import './js/cerrar_sesion.js'
 import './js/menu.js'
+
 // Agregar comentarios para explicar el uso de la función onAuthStateChanged
 // y cómo maneja el cambio de estado de autenticación
 onAuthStateChanged(auth, async (user) => {
