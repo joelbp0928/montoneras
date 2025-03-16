@@ -33,7 +33,7 @@ onAuthStateChanged(auth, async (user) => {
         } catch (error) {
             // Mostrar mensaje de error en caso de que ocurra algún problema
             console.log("Error al acceder a Firestore:", error);
-            showmessage("Error al acceder a Firestore", "error");
+            showmessage("Error al acceder.", "error");
         }
     } else {
         // Si el usuario no está autenticado (sin sesión activa)
@@ -42,3 +42,47 @@ onAuthStateChanged(auth, async (user) => {
         logincheck(user); // Realizar el checkeo para usuarios sin sesión activa
     }
 });
+
+// 📌 Importar Firestore
+import { doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js";
+
+// 📌 Obtener referencias a los elementos HTML
+const logoElement = document.querySelector(".logo");
+const backgroundElement = document.querySelector(".background-image");
+
+// 📌 Función para cargar configuración desde Firestore
+async function loadConfig() {
+    try {
+        const docRef = doc(db, "configuracion", "admin");
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const config = docSnap.data();
+            updateUI(config);
+        }
+    } catch (error) {
+        console.error("❌ Error al obtener configuración desde Firestore:", error);
+    }
+}
+
+// 📌 Función para actualizar el logo y fondo dinámicamente
+function updateUI(config) {
+    if (config.logo) {
+        logoElement.src = config.logo; // Actualiza el logo
+    }
+
+    if (config.background) {
+        backgroundElement.style.backgroundImage = `url(${config.background})`; // Actualiza el fondo
+    }
+}
+
+// 🎧 Escuchar cambios en Firestore en tiempo real y actualizar en la UI automáticamente
+onSnapshot(doc(db, "configuracion", "admin"), (docSnap) => {
+    if (docSnap.exists()) {
+        const config = docSnap.data();
+        updateUI(config);
+    }
+});
+
+// 📌 Cargar la configuración inicial al cargar la página
+document.addEventListener("DOMContentLoaded", loadConfig);

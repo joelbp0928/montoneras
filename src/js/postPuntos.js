@@ -1,19 +1,33 @@
-// Importar el módulo showmessage para mostrar mensajes en la interfaz
+// Importar módulos de Firestore y mensaje emergente
+import { doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js";
 import { showmessage } from '../js/showmessage.js';
+import { db } from "./firebase.js";
 
-// Obtener una referencia al elemento HTML con la clase "posts"
+// 📌 Obtener referencia al contenedor de los mensajes
 const postList = document.querySelector(".posts");
 
-// Definir la función setupPosts que se encargará de configurar las publicaciones en la interfaz
-export const setupPosts = (data, email, telefono) => {
+// 📌 Configurar los posts y mostrar mensaje de bienvenida personalizado
+export const setupPosts = async (data, email, telefono) => {
   if (!postList) return;
 
-  const clientData = Array.isArray(data) ? data : [data];
-  if (clientData.length > 0) {
-    let html = ""; 
+  // 🔍 Obtener datos de configuración desde Firestore
+  const docRef = doc(db, "configuracion", "admin");
+  const docSnap = await getDoc(docRef);
+  let welcomeMessage = "";
+  let restaurantName = "";
 
-    clientData.forEach((doc) => {
-      const post = doc.data ? doc.data() : doc; 
+  if (docSnap.exists()) {
+    const config = docSnap.data();
+    welcomeMessage = config.welcomeMessage || welcomeMessage;
+    restaurantName = config.restaurantName || "";
+  }
+
+  // 📌 Si el usuario está registrado, mostrar su información
+  if (Array.isArray(data) && data.length > 0) {
+    let html = "";
+
+    data.forEach((doc) => {
+      const post = doc.data ? doc.data() : doc;
 
       if (post.email === email || post.telefono === telefono) {
         html += `
@@ -25,24 +39,57 @@ export const setupPosts = (data, email, telefono) => {
             ${post.telefono === telefono ? `<p class="text-center">📱 ${post.telefono}</p>` : ""}
           </div>
         `;
-        showWelcomeMessage(post.nombre);
+        // 🎉 Mostrar mensaje de bienvenida
+        showWelcomeMessage(`¡Bienvenid@ ${post.nombre}!`);
       }
     });
 
     postList.innerHTML = html;
   } else {
-    // Mensaje de bienvenida para usuarios no registrados
-    postList.innerHTML = `
-      <div class="welcome-container">
-        <h2 class="welcome-message">
-          ✨ <strong>¡Bienvenido al Programa de Recompensas de Mr. Donut! 🍩</strong>
-        </h2>
-        <p class="text-center">Disfruta de deliciosas recompensas acumulando puntos en cada compra.🏆</p>
-      </div>
-    `;
+    // 📌 Mostrar mensaje de bienvenida para usuarios no registrados
+    updateWelcomeMessage(welcomeMessage, restaurantName);
   }
 };
 
-function showWelcomeMessage(nombre) {
-  showmessage(`¡Bienvenid@, ${nombre}! 🎊`, "success");
+// 📌 Función para actualizar el mensaje de bienvenida en la UI
+function updateWelcomeMessage(welcomeMessage, restaurantName) {
+  if (!postList) return;
+
+  let messageHTML = `
+    <div class="welcome-container">
+      <h2 class="welcome-message">`;
+
+  // 🏪 Mostrar el nombre del restaurante solo si existe en Firestore
+  if (restaurantName.trim() !== "") {
+    messageHTML += `<strong>¡Bienvenido al Programa de Recompensas de ${restaurantName} </strong>`
+  } else {
+    messageHTML += `<strong>¡Bienvenido a nuestro programa de recompensas!</strong>`
+  }
+
+  messageHTML += `</h2>`;
+
+  // 🏪 Mostrar el nombre del restaurante solo si existe en Firestore
+  if (welcomeMessage.trim() !== "") {
+    messageHTML += `<p class="text-center">${welcomeMessage}</p>`;
+  }
+
+  messageHTML += `</div>`;
+
+  postList.innerHTML = messageHTML;
 }
+
+// 📌 Función para mostrar mensaje emergente de bienvenida
+function showWelcomeMessage(message) {
+  showmessage(message, "success");
+}
+
+// 🎧 Escuchar cambios en Firestore en tiempo real y actualizar el mensaje de bienvenida automáticamente
+onSnapshot(doc(db, "configuracion", "admin"), (docSnap) => {
+  if (docSnap.exists()) {
+    const config = docSnap.data();
+    const updatedWelcomeMessage = config.welcomeMessage || "¡Bienvenid@ a nuestro programa de recompensas!";
+    const updatedRestaurantName = config.restaurantName || "";
+
+    updateWelcomeMessage(updatedWelcomeMessage, updatedRestaurantName);
+  }
+});

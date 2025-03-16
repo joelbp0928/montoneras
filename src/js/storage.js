@@ -1,6 +1,7 @@
 import { storage, db } from "./firebase.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-storage.js";
 import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js";
+import { showmessage } from "./showmessage.js";
 
 // 📌 Función para subir imágenes a Firebase Storage
 export async function uploadImage(file, fileName, folder = "imgMenu") {
@@ -9,6 +10,7 @@ export async function uploadImage(file, fileName, folder = "imgMenu") {
         await uploadBytes(storageRef, file);
         return await getDownloadURL(storageRef); // 🔗 Obtener URL de descarga
     } catch (error) {
+        showmessage("❌ Error al subir la imagen", "error");
         console.error("❌ Error al subir la imagen:", error);
         throw error;
     }
@@ -33,8 +35,9 @@ export async function saveConfigToFirestore(newData, section = "admin") {
 
         await setDoc(docRef, updatedData, { merge: true });
 
-        console.log(`✔ Configuración guardada en 'configuracion/${section}' correctamente.`);
+     //   console.log(`✔ Configuración guardada en 'configuracion/${section}' correctamente.`);
     } catch (error) {
+        showmessage("❌ Error guardando", "error");
         console.error(`❌ Error guardando en Firestore en 'configuracion/${section}':`, error);
     }
 }
@@ -48,6 +51,7 @@ export async function getConfigFromFirestore(section = "admin") {
 
         return docSnap.exists() ? docSnap.data() : {};
     } catch (error) {
+        showmessage("❌ Error al obtener configuración", "error");
         console.error(`❌ Error al obtener configuración de 'configuracion/${section}':`, error);
         return {};
     }

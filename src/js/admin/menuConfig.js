@@ -1,18 +1,34 @@
 import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-storage.js";
+import { doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js";
 import { uploadImage, saveConfigToFirestore, getConfigFromFirestore } from "../storage.js";
-import { storage } from "../firebase.js"; // 🔹 Asegúrate de importar storage
+import { storage, db } from "../firebase.js"; // 🔹 Asegúrate de importar storage
+import { showmessage } from "../showmessage.js";
 
-
-// 📌 Inicializar la configuración del menú
+// 📌 Inicializar la configuración del menú y escuchar cambios en tiempo real
 export async function initMenuConfig() {
   const config = await getConfigFromFirestore();
-  
+
+  // 🔹 Cargar imágenes iniciales si existen
   if (config && config.menuImages) {
     loadMenuImages(config.menuImages);
   }
+
+  // 🎧 Escuchar cambios en Firestore en tiempo real
+  const docRef = doc(db, "configuracion", "admin"); 
+  onSnapshot(docRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (data.menuImages) {
+       // console.log("🔄 Se detectaron cambios en Firestore. Actualizando imágenes...");
+        loadMenuImages(data.menuImages);
+      }
+    } else {
+      console.warn("⚠️ No se encontró el documento en Firestore.");
+    }
+  });
 }
 
-// 📌 Cargar imágenes del menú
+// 📌 Cargar imágenes del menú en la UI
 function loadMenuImages(images) {
   const container = document.getElementById("menuImagesContainer");
   container.innerHTML = ""; // 🧹 Limpiar contenedor antes de cargar
@@ -22,7 +38,7 @@ function loadMenuImages(images) {
     container.appendChild(imageItem);
   });
 
-  makeImagesDraggable();
+  makeImagesDraggable(); // Habilitar funcionalidad de arrastrar
 }
 
 // 📌 Crear un elemento de imagen del menú
@@ -55,7 +71,9 @@ document.getElementById("menuImageInput").addEventListener("change", async funct
   const file = event.target.files[0];
   if (!file) return;
 
-  const imageURL = await uploadImage(file, `${file.name}`, "imgMenu"); // 📂 Guardar en `imgMenu`
+  const uniqueName = `imgMenu_${Date.now()}_${Math.floor(Math.random() * 1000)}.${file.name.split('.').pop()}`; 
+  const imageURL = await uploadImage(file, uniqueName, "imgMenu"); // 📂 Guardar en `imgMenu`
+  
   const config = await getConfigFromFirestore();
   const images = config.menuImages || [];
 
@@ -64,42 +82,49 @@ document.getElementById("menuImageInput").addEventListener("change", async funct
     await saveConfigToFirestore({ menuImages: images });
     loadMenuImages(images);
   } else {
-    alert("🔟 Límite de 10 imágenes alcanzado.");
+    showmessage("🔟 Límite de 10 imágenes alcanzado.","warning");
   }
 });
 
 // 📌 Función para eliminar una imagen del menú de Firestore y Storage
 async function removeImage(index) {
-  const config = await getConfigFromFirestore();
-  const images = config.menuImages || [];
+  const docRef = doc(db, "configuracion", "admin"); // 📍Referencia al documento `admin` dentro de `configuracion`
+  const docSnap = await getDoc(docRef);
 
-  if (index < 0 || index >= images.length) {
-    console.warn("⚠️ Índice inválido, no se puede eliminar la imagen.");
+  if (!docSnap.exists()) {
+    console.warn("⚠️ No existe el documento 'admin' en Firestore.");
+    showmessage("⚠️ No existe el documento 'admin' en Firestore.","warning");
     return;
   }
 
-  const imageURL = images[index]; // 🖼️ Obtener URL de la imagen
-  images.splice(index, 1); // 🗑️ Eliminar de la lista
+  let images = docSnap.data().menuImages || []; // 📥 Obtener el array de imágenes
+
+  if (index < 0 || index >= images.length) {
+   // console.warn("⚠️ Índice inválido, no se puede eliminar la imagen.");
+    showmessage("⚠️ Índice inválido, no se puede eliminar la imagen.", "warning");
+    return;
+  }
+
+  const imageURL = images[index]; // 🖼️ Obtener la URL de la imagen a eliminar
+  images.splice(index, 1); // 🗑️ Eliminarla del array
 
   try {
     // 🔥 Eliminar la imagen de Firebase Storage
     const storageRef = ref(storage, imageURL);
     await deleteObject(storageRef);
+    showmessage("🗑️ Imagen eliminada correctamente.","success")
 
-    console.log("🗑️ Imagen eliminada de Storage correctamente.");
-
-    // 💾 Actualizar Firestore eliminando la URL de la imagen
-    await saveConfigToFirestore({ menuImages: images }, "menu");
-
-    console.log("✔ Imagen eliminada de Firestore correctamente.");
+    // 💾 Actualizar Firestore eliminando la URL del campo `menuImages` dentro de `admin`
+    await updateDoc(docRef, { menuImages: images }); // 🔄 Modificamos solo el campo `menuImages`
+    //console.log("✔ Imagen eliminada de Firestore correctamente.");
 
     // 🔄 Recargar la lista de imágenes en la UI
     loadMenuImages(images);
   } catch (error) {
+    showmessage("❌ Error al eliminar la imagen.", "error")
     console.error("❌ Error al eliminar la imagen:", error);
   }
 }
-
 
 // 📌 Hacer imágenes arrastrables
 function makeImagesDraggable() {

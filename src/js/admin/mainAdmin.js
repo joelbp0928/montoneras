@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", function () {
   initMenuConfig();
 });
 
-
 // 🟢 Evento que se ejecuta cuando la página ha cargado completamente
 document.addEventListener("DOMContentLoaded", async function () {
   const loadingElement = document.getElementById("loading"); // 🔹 Referencia al loader
@@ -22,6 +21,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     if (config) {
       document.getElementById("restaurantName").value = config.restaurantName || "";
+      document.getElementById("welcomeMessage").value = config.welcomeMessage || "";
       if (config.logo) document.querySelector(".logo").src = config.logo;
       if (config.background) document.querySelector(".background-image").style.backgroundImage = `url(${config.background})`;
     }
@@ -33,13 +33,14 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 });
 
-
 // 🔹 Evento que se ejecuta cuando el usuario guarda la configuración
 document.getElementById("saveConfig").addEventListener("click", async function () {
   // 📦 Capturamos los valores ingresados en los inputs
   const restaurantName = document.getElementById("restaurantName").value;
   const logoInput = document.getElementById("logoUpload").files[0];  // 🖼️ Archivo de logo
   const backgroundInput = document.getElementById("backgroundUpload").files[0];  // 🎨 Archivo de fondo
+  const welcomeMessage = document.getElementById("welcomeMessage").value;
+
 
   try {
     // 🔹 Obtenemos la configuración actual de Firestore para mantener los valores previos
@@ -55,15 +56,17 @@ document.getElementById("saveConfig").addEventListener("click", async function (
     // 📦 Creamos un objeto con la nueva configuración, asegurando que los valores previos sean respetados
     const updatedConfig = {
       restaurantName: restaurantName || currentConfig.restaurantName,  // ✅ Si no se cambia el nombre, mantener el anterior
+      welcomeMessage: welcomeMessage || currentConfig.welcomeMessage,
       logo: logoURL,  // ✅ Mantiene la imagen anterior si no se sube una nueva
       background: backgroundURL  // ✅ Mantiene la imagen anterior si no se sube una nueva
     };
 
     // 💾 Guardamos la configuración actualizada en Firestore
     await saveConfigToFirestore({
-      restaurantName: updatedConfig.restaurantName,
+      restaurantName: restaurantName,
       logo: updatedConfig.logo,
-      background: updatedConfig.background
+      background: updatedConfig.background,
+      welcomeMessage: welcomeMessage
     }, "admin");
 
 

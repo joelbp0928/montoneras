@@ -1,24 +1,73 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const menuImages = [
-    { src: "img/menu1.jpg", alt: "Menú 1" },
-    { src: "img/menu2.jpg", alt: "Menú 2" },
-    { src: "img/menu3.jpg", alt: "Menú 3" }
-  ];
+import { db } from "./firebase.js"; // 🔹 Importa la instancia de Firebase Firestore
+import { doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js";
+import { showmessage } from "./showmessage.js";
 
+document.addEventListener("DOMContentLoaded", async function () {
   const carouselInner = document.getElementById("carouselInner");
   const carousel = document.getElementById("menuCarousel");
-  const bootstrapCarousel = new bootstrap.Carousel(carousel, { interval: 3000, ride: "carousel" }); // 🔹 Activa el auto-slide
+  const bootstrapCarousel = new bootstrap.Carousel(carousel, {
+    interval: 3000,
+    ride: "carousel",
+  });
 
-  // 🔹 Insertar imágenes en el carrusel dinámicamente
-  carouselInner.innerHTML = menuImages
-    .map((img, index) => `
-      <div class="carousel-item ${index === 0 ? "active" : ""}">
-        <div class="zoom-container">
-          <img src="${img.src}" alt="${img.alt}" class="img-fluid rounded zoomable">
+  // 📥 Función para cargar imágenes del menú desde Firestore
+  async function loadMenuImages() {
+    try {
+      const docRef = doc(db, "configuracion", "admin"); // 📍 Obtener la referencia a Firestore
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.menuImages && data.menuImages.length > 0) {
+          updateCarousel(data.menuImages);
+        } else {
+          console.warn("⚠️ No hay imágenes en Firestore.");
+        }
+      } else {
+        console.warn("⚠️ No se encontró el documento en Firestore.");
+      }
+    } catch (error) {
+      console.error("❌ Error cargando imágenes del menú desde Firestore:", error);
+    }
+  }
+
+  // 🎧 Escuchar cambios en Firestore en tiempo real
+  function listenForMenuChanges() {
+    const docRef = doc(db, "configuracion", "admin");
+    onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.menuImages) {
+          updateCarousel(data.menuImages);
+        }
+      }
+    });
+  }
+
+  // 📌 Función para actualizar el carrusel con imágenes dinámicas
+  function updateCarousel(images) {
+    carouselInner.innerHTML = ""; // 🧹 Limpiar carrusel antes de agregar nuevas imágenes
+
+    images.forEach((imgURL, index) => {
+      const activeClass = index === 0 ? "active" : "";
+      const item = `
+        <div class="carousel-item ${activeClass}">
+          <div class="zoom-container">
+            <img src="${imgURL}" alt="Menú ${index + 1}" class="img-fluid rounded zoomable">
+          </div>
         </div>
-      </div>
-    `)
-    .join("");
+      `;
+      carouselInner.innerHTML += item;
+    });
+
+    bootstrapCarousel.cycle(); // 🔄 Reiniciar el carrusel
+  }
+
+  // 📥 Cargar imágenes iniciales
+  await loadMenuImages();
+
+  // 🎧 Escuchar cambios en Firestore en tiempo real
+  listenForMenuChanges();
 
   // 🔹 Abrir modal con el botón
   document.getElementById("openMenu").addEventListener("click", () => {
@@ -96,7 +145,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
     // 🔹 Detener el auto-slide del carrusel
-   // bootstrapCarousel.pause();
+    // bootstrapCarousel.pause();
 
 
     img.addEventListener("dblclick", () => {
