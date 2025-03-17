@@ -35,14 +35,21 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 // 🔹 Evento que se ejecuta cuando el usuario guarda la configuración
 document.getElementById("saveConfig").addEventListener("click", async function () {
+//  showmessage("✔ Guardando...", "warning");
   // 📦 Capturamos los valores ingresados en los inputs
   const restaurantName = document.getElementById("restaurantName").value;
   const logoInput = document.getElementById("logoUpload").files[0];  // 🖼️ Archivo de logo
   const backgroundInput = document.getElementById("backgroundUpload").files[0];  // 🎨 Archivo de fondo
   const welcomeMessage = document.getElementById("welcomeMessage").value;
-
+  const loadingMessage = document.getElementById("savingMessage"); // Mensaje de carga
+  const saveButton = document.getElementById("saveConfig"); // Botón de guardar
 
   try {
+    // 🔹 Mostrar mensaje de "Guardando..." y deshabilitar botón
+    saveButton.disabled = true;
+    saveButton.innerHTML = "Guardando...";
+    loadingMessage.style.display = "block"; // Mostrar mensaje
+    
     // 🔹 Obtenemos la configuración actual de Firestore para mantener los valores previos
     const currentConfig = await getConfigFromFirestore();
 
@@ -50,8 +57,8 @@ document.getElementById("saveConfig").addEventListener("click", async function (
     let backgroundURL = currentConfig.background || null;  // 🎨 Mantener fondo anterior si no se sube uno nuevo
 
     // 📤 Subimos las imágenes a Firebase Storage si el usuario seleccionó alguna nueva
-    if (logoInput) logoURL = await uploadImage(logoInput, "logo.png");
-    if (backgroundInput) backgroundURL = await uploadImage(backgroundInput, "background.png");
+    if (logoInput) logoURL = await uploadImage(logoInput, "config");  // Se guardará en `imgConfig`
+    if (backgroundInput) backgroundURL = await uploadImage(backgroundInput, "config");  // Se guardará en `imgConfig`
 
     // 📦 Creamos un objeto con la nueva configuración, asegurando que los valores previos sean respetados
     const updatedConfig = {
@@ -85,8 +92,13 @@ document.getElementById("saveConfig").addEventListener("click", async function (
   } catch (error) {
     // ❌ Si hay un error, lo notificamos
     showmessage("❌ Error al guardar la configuración.", "error");
-    console("❌ Error al guardar la configuración.", error);
+    console.log("❌ Error al guardar la configuración.", error);
     // alert("❌ Error al guardar la configuración.");
+  } finally {
+    // 🔹 Ocultar mensaje de carga y restaurar el botón
+    saveButton.disabled = false;
+    saveButton.innerHTML = "Guardar Cambios";
+    loadingMessage.style.display = "none"; // Ocultar mensaje
   }
 });
 

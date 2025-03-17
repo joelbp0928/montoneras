@@ -4,19 +4,44 @@ import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.10.0/f
 import { showmessage } from "./showmessage.js";
 
 // 📌 Función para subir imágenes a Firebase Storage
-export async function uploadImage(file, fileName, folder = "imgMenu") {
+export async function uploadImage(file, type, existingImageCount) {
     try {
-        const storageRef = ref(storage, `${folder}/${fileName}`); // 📂 Guardar en la carpeta especificada
+        console.log("type: ",type);
+        let folder = "imgConfig"; // 📂 Carpeta por defecto para logo y background
+        let fileName = "";
+
+        if (type === "menu") {
+            folder = "imgMenu"; // 📂 Carpeta específica para imágenes del menú
+
+            // 🔢 Determinar el próximo nombre de archivo basado en las imágenes existentes
+            const nextIndex = existingImageCount + 1; // Contar imágenes existentes y agregar 1
+            console.log(existingImageCount )
+            fileName = `menu${nextIndex}.png`; // 📌 Nombrar como menu1.png, menu2.png, etc.
+            console.log("filename",fileName)
+        } else if (type === "config") {
+            fileName = "logo.png"; // 📌 Nombre fijo para logo
+            console.log("logo:", fileName)
+        } else if (type === "config") {
+            fileName = "background.png"; // 📌 Nombre fijo para background
+        } else {
+            fileName = `${Date.now()}_${file.name}`; // 📌 Nombre aleatorio si es otro tipo
+        }
+
+        // 📌 Ruta en Storage
+        const storageRef = ref(storage, `${folder}/${fileName}`);
+
+        // 📤 Subir archivo nuevo (se sobrescribe si ya existía)
         await uploadBytes(storageRef, file);
-        return await getDownloadURL(storageRef); // 🔗 Obtener URL de descarga
+
+        return await getDownloadURL(storageRef); // 🔗 Obtener nueva URL
     } catch (error) {
-        showmessage("❌ Error al subir la imagen", "error");
         console.error("❌ Error al subir la imagen:", error);
         throw error;
     }
 }
 
-// 📌 Guardar configuración en Firestore en diferentes documentos dentro de `configuracion`
+
+// 📌 Guardar configuración en Firestore (Sobreescribir logo y background)
 export async function saveConfigToFirestore(newData, section = "admin") {
     try {
         const docRef = doc(db, "configuracion", section);
@@ -26,18 +51,17 @@ export async function saveConfigToFirestore(newData, section = "admin") {
         let updatedData;
 
         if (section === "menu") {
-            // 📌 Si la sección es "menu", aseguramos que `urls` sea un array y no sobrescribimos otros datos.
-            updatedData = { urls: [...(existingData.urls || []), ...(newData.urls || [])] };
+            // 📌 Si la sección es "menu", aseguramos que `menuImages` sea un array sin duplicados
+            updatedData = { menuImages: [...(existingData.menuImages || []), ...(newData.menuImages || [])] };
         } else {
-            // 📌 Si la sección es "admin", fusionamos los datos manteniendo los existentes.
+            // 📌 Si la sección es "admin", fusionamos los datos y reemplazamos logo/background
             updatedData = { ...existingData, ...newData };
         }
 
         await setDoc(docRef, updatedData, { merge: true });
 
-     //   console.log(`✔ Configuración guardada en 'configuracion/${section}' correctamente.`);
+        console.log(`✔ Configuración guardada en 'configuracion/${section}' correctamente.`);
     } catch (error) {
-        showmessage("❌ Error guardando", "error");
         console.error(`❌ Error guardando en Firestore en 'configuracion/${section}':`, error);
     }
 }

@@ -1,4 +1,4 @@
-import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-storage.js";
+import { ref, deleteObject, listAll } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-storage.js";
 import { doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js";
 import { uploadImage, saveConfigToFirestore, getConfigFromFirestore } from "../storage.js";
 import { storage, db } from "../firebase.js"; // 🔹 Asegúrate de importar storage
@@ -14,12 +14,12 @@ export async function initMenuConfig() {
   }
 
   // 🎧 Escuchar cambios en Firestore en tiempo real
-  const docRef = doc(db, "configuracion", "admin"); 
+  const docRef = doc(db, "configuracion", "admin");
   onSnapshot(docRef, (docSnap) => {
     if (docSnap.exists()) {
       const data = docSnap.data();
       if (data.menuImages) {
-       // console.log("🔄 Se detectaron cambios en Firestore. Actualizando imágenes...");
+        //console.log("🔄 Se detectaron cambios en Firestore. Actualizando imágenes...");
         loadMenuImages(data.menuImages);
       }
     } else {
@@ -66,23 +66,39 @@ document.getElementById("addImageButton").addEventListener("click", function () 
   document.getElementById("menuImageInput").click();
 });
 
+// 📌 Función para contar imágenes en la carpeta "imgMenu"
+async function countMenuImages() {
+  try {
+    const folderRef = ref(storage, "imgMenu"); // 📂 Referencia a la carpeta imgMenu
+    const listResult = await listAll(folderRef); // 🔍 Listar archivos en la carpeta
+    return listResult.items.length; // 🔢 Retornar cantidad de imágenes
+  } catch (error) {
+    console.error("❌ Error al contar imágenes en Storage:", error);
+    return 0; // En caso de error, devolver 0
+  }
+}
+
 // 📌 Manejar la carga de imágenes
 document.getElementById("menuImageInput").addEventListener("change", async function (event) {
   const file = event.target.files[0];
   if (!file) return;
+  // 📌 Contar imágenes existentes antes de subir una nueva
+  const existingImageCount = await countMenuImages();
 
-  const uniqueName = `imgMenu_${Date.now()}_${Math.floor(Math.random() * 1000)}.${file.name.split('.').pop()}`; 
-  const imageURL = await uploadImage(file, uniqueName, "imgMenu"); // 📂 Guardar en `imgMenu`
-  
+  console.log("filemenu", file)
+  console.log("count", existingImageCount )
+
+
   const config = await getConfigFromFirestore();
   const images = config.menuImages || [];
 
   if (images.length < 10) {
+    const imageURL =  await uploadImage(file, "menu", existingImageCount); // 📂 Pasar el conteo de imágenes
     images.push(imageURL);
     await saveConfigToFirestore({ menuImages: images });
     loadMenuImages(images);
   } else {
-    showmessage("🔟 Límite de 10 imágenes alcanzado.","warning");
+    showmessage("🔟 Límite de 10 imágenes alcanzado.", "warning");
   }
 });
 
@@ -93,14 +109,14 @@ async function removeImage(index) {
 
   if (!docSnap.exists()) {
     console.warn("⚠️ No existe el documento 'admin' en Firestore.");
-    showmessage("⚠️ No existe el documento 'admin' en Firestore.","warning");
+    showmessage("⚠️ No existe el documento 'admin' en Firestore.", "warning");
     return;
   }
 
   let images = docSnap.data().menuImages || []; // 📥 Obtener el array de imágenes
 
   if (index < 0 || index >= images.length) {
-   // console.warn("⚠️ Índice inválido, no se puede eliminar la imagen.");
+    // console.warn("⚠️ Índice inválido, no se puede eliminar la imagen.");
     showmessage("⚠️ Índice inválido, no se puede eliminar la imagen.", "warning");
     return;
   }
@@ -112,7 +128,7 @@ async function removeImage(index) {
     // 🔥 Eliminar la imagen de Firebase Storage
     const storageRef = ref(storage, imageURL);
     await deleteObject(storageRef);
-    showmessage("🗑️ Imagen eliminada correctamente.","success")
+    showmessage("🗑️ Imagen eliminada correctamente.", "success")
 
     // 💾 Actualizar Firestore eliminando la URL del campo `menuImages` dentro de `admin`
     await updateDoc(docRef, { menuImages: images }); // 🔄 Modificamos solo el campo `menuImages`
@@ -177,6 +193,6 @@ function makeImagesDraggable() {
 async function saveNewOrder() {
   const container = document.getElementById("menuImagesContainer");
   const newOrder = [...container.children].map(item => item.querySelector("img").src);
-  
+
   await saveConfigToFirestore({ menuImages: newOrder });
 }
