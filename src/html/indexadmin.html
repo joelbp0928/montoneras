@@ -94,10 +94,15 @@
                   >Menú</a
                 >
               </li>
+              <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#pointsConfig"
+                  >Recompensa</a
+                >
+              </li>
             </ul>
 
             <!-- 🔹 Contenido de las Pestañas -->
-            <div class="tab-content mt-3">
+            <div class="tab-content mt-4">
               <!-- 📑 Configuración General -->
               <div id="generalConfig" class="tab-pane fade show active">
                 <label for="restaurantName">Nombre del Restaurante:</label>
@@ -158,6 +163,86 @@
                     <i class="fas fa-plus"></i> Agregar Imagen
                   </button>
                 </div>
+              </div>
+              <!-- 🔹 Configuración del Sistema de Recompensas -->
+              <div id="pointsConfig" class="tab-pane fade">
+                <h5 class="my-3">Configuración del Sistema de Recompensas</h5>
+
+                <p class="text-muted">
+                  Define cómo los clientes acumulan puntos. Puedes elegir entre
+                  recibir recompensas por cada compra o por cada visita al
+                  local.
+                </p>
+
+                <!-- 🔹 Configuración en línea -->
+                <div class="reward-settings">
+                  <!-- Tipo de recompensa -->
+                  <div>
+                    <label for="pointsType"
+                      ><strong>Tipo de recompensa:</strong></label
+                    >
+                    <select id="pointsType" class="form-select">
+                      <option value="purchase">💰 Por compra</option>
+                      <option value="visit">🚶 Por visita</option>
+                    </select>
+                  </div>
+
+                  <!-- Campo de porcentaje (Por compra) -->
+                  <div
+                    id="purchasePointsField"
+                    class="align-items-center"
+                  >
+                    <label for="pointsPercentage" class="d-none"><strong>%</strong></label>
+                    <input
+                      type="number"
+                      id="pointsPercentage"
+                      class="form-control reward-input"
+                      value="10"
+                      min="1"
+                      max="100"
+                    />
+                    <span class="input-group-text"
+                      ><i class="fas fa-percentage"></i
+                    ></span> <!-- Mostrar el ícono de porcentaje -->
+                  </div>
+
+                  <!-- Campo de visitas (Por visita) -->
+                  <div
+                    id="visitPointsField"
+                    class="align-items-center"
+                  >
+                    <label for="visitsRequired" class="input-group-text"><strong>🏆</strong></label>
+                    <input
+                      type="number"
+                      id="visitsRequired"
+                      class="form-control reward-input"
+                      value="5"
+                      min="1"
+                    />
+                  </div>
+                </div>
+
+                <!-- 🔹 Mensajes de ayuda -->
+                <div>
+                  <small id="purchaseHelp" class="reward-help">
+                    Ejemplo: Si el cliente gasta $100 y el porcentaje es 10%,
+                    gana 10 puntos.
+                  </small>
+                  <small
+                    id="visitHelp"
+                    class="reward-help"
+                    style="display: none"
+                  >
+                    Ejemplo: Si eliges 5, el cliente recibirá una recompensa
+                    después de 5 visitas.
+                  </small>
+                </div>
+
+                <!-- ℹ️ Recomendación general -->
+                <p class="text-muted mt-3">
+                  Puedes cambiar entre los dos sistemas de recompensas según las
+                  necesidades de tu negocio.
+                </p>
               </div>
             </div>
           </div>

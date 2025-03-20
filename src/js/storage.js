@@ -6,7 +6,6 @@ import { showmessage } from "./showmessage.js";
 // 📌 Función para subir imágenes a Firebase Storage
 export async function uploadImage(file, type, existingImageCount) {
     try {
-        console.log("type: ",type);
         let folder = "imgConfig"; // 📂 Carpeta por defecto para logo y background
         let fileName = "";
 
@@ -15,13 +14,10 @@ export async function uploadImage(file, type, existingImageCount) {
 
             // 🔢 Determinar el próximo nombre de archivo basado en las imágenes existentes
             const nextIndex = existingImageCount + 1; // Contar imágenes existentes y agregar 1
-            console.log(existingImageCount )
             fileName = `menu${nextIndex}.png`; // 📌 Nombrar como menu1.png, menu2.png, etc.
-            console.log("filename",fileName)
-        } else if (type === "config") {
+        } else if (type === "configlogo") {
             fileName = "logo.png"; // 📌 Nombre fijo para logo
-            console.log("logo:", fileName)
-        } else if (type === "config") {
+        } else if (type === "configback") {
             fileName = "background.png"; // 📌 Nombre fijo para background
         } else {
             fileName = `${Date.now()}_${file.name}`; // 📌 Nombre aleatorio si es otro tipo
@@ -35,6 +31,7 @@ export async function uploadImage(file, type, existingImageCount) {
 
         return await getDownloadURL(storageRef); // 🔗 Obtener nueva URL
     } catch (error) {
+        showmessage("❌ Error al subir la imagen", "error");
         console.error("❌ Error al subir la imagen:", error);
         throw error;
     }
@@ -59,8 +56,7 @@ export async function saveConfigToFirestore(newData, section = "admin") {
         }
 
         await setDoc(docRef, updatedData, { merge: true });
-
-        console.log(`✔ Configuración guardada en 'configuracion/${section}' correctamente.`);
+      //  console.log(`✔ Configuración guardada en 'configuracion/${section}' correctamente.`);
     } catch (error) {
         console.error(`❌ Error guardando en Firestore en 'configuracion/${section}':`, error);
     }

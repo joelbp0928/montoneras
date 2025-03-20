@@ -996,3 +996,59 @@ img {
   border-radius: 5px;
   cursor: pointer;
 }
+
+/* 🔹 Alinear en una línea select y campos de recompensa */
+.reward-settings {
+  display: flex;
+  justify-content: center; /* Centrado de los items */
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap; /* Permitir que los elementos se ajusten a la siguiente línea si no caben */
+}
+
+/* 📏 Tamaño del select */
+#pointsType {
+  width: 300px;
+  padding: 5px;
+  font-size: 16px;
+}
+
+/* 📐 Tamaño de los inputs */
+.reward-input {
+  width: 70px;
+  text-align: center;
+  margin-top: 21px;
+}
+
+/* 🔹 Mensajes de ayuda */
+.reward-help {
+  font-size: 14px;
+  color: gray;
+  margin-top: 5px;
+}
+
+/* 📐 Ajustar el tamaño del ícono de porcentaje */
+.input-group-text {
+  padding: 0.375rem 0.5rem;
+  font-size: 16px;
+  margin-top: 21px;
+}
+
+/* 📱 Media query para pantallas pequeñas (menos de 768px de ancho) */
+@media (max-width: 768px) {
+  .reward-settings {
+    display: flex; /* Cambiar a columna */
+    flex-direction: column;
+    gap: 0px; /* Espacio entre los elementos, ajustado */
+  }
+
+  .input-group-text {
+    font-size: 16px; /* Reducir el tamaño del icono en pantallas pequeñas */
+  }
+
+  /* Asegurar que el campo de visitas también se vea correctamente en pantallas pequeñas */
+  #purchasePointsField,
+  #visitPointsField {
+    display: block; /* Asegurar que los campos se muestren en columna */
+  }
+}

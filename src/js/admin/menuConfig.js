@@ -84,11 +84,6 @@ document.getElementById("menuImageInput").addEventListener("change", async funct
   if (!file) return;
   // 📌 Contar imágenes existentes antes de subir una nueva
   const existingImageCount = await countMenuImages();
-
-  console.log("filemenu", file)
-  console.log("count", existingImageCount )
-
-
   const config = await getConfigFromFirestore();
   const images = config.menuImages || [];
 
@@ -109,7 +104,7 @@ async function removeImage(index) {
 
   if (!docSnap.exists()) {
     console.warn("⚠️ No existe el documento 'admin' en Firestore.");
-    showmessage("⚠️ No existe el documento 'admin' en Firestore.", "warning");
+    showmessage("⚠️ No existe el documento en la nube.", "warning");
     return;
   }
 
