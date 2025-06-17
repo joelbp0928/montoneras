@@ -4,20 +4,23 @@ import { showmessage } from "./showmessage.js";
 export function showError(fieldId, errorMessage, etiquetaId = "", mensajeEtiqueta = "") {
   const field = document.getElementById(fieldId);
   const etiqueta = document.getElementById(etiquetaId);
-  //  ocultarContenedores();
+
   if (field) {
-    field.classList.add('is-invalid', "error");
-    
+    // Quitar la clase para reiniciar el efecto
+    field.classList.remove('error');
+
+    // Reagregarla tras un pequeño delay para reiniciar animación CSS
+    setTimeout(() => {
+      field.classList.add('is-invalid', 'error');
+    }, 10); // 10ms es suficiente
   }
-  if (etiquetaId) {
-    if (etiqueta) {
-      etiqueta.classList.add("mensaje-error");
-      etiqueta.style.display = "block";
-      etiqueta.textContent = mensajeEtiqueta
-      showmessage(errorMessage, "error");
-    }
+
+  if (etiquetaId && etiqueta) {
+    etiqueta.classList.add("mensaje-error");
+    etiqueta.style.display = "block";
+    etiqueta.textContent = mensajeEtiqueta;
+    showmessage(errorMessage, "error");
   }
-  
 }
 
 // Función para ocultar el mensaje de error y eliminar la clase de error del campo

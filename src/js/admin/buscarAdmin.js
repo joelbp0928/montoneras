@@ -21,12 +21,48 @@ const buscarInput = document.getElementById('buscarClienteInput');
 // Función para realizar búsqueda genérica de cliente
 async function buscarCliente(campo, valor) {
   try {
-    const querySnapshot = await clientesRef.where(campo, '==', valor).get();
-    hideError('buscarClienteInput', 'mensajeErrorBuscar');
-    validacionAgregarValid(['buscarClienteInput']);
+    let querySnapshot;
+
+    if (campo === 'nombre') {
+      // 🔍 Buscar por nombreNormalizado Y por nombre
+      const [res1, res2] = await Promise.all([
+        clientesRef.where('nombreNormalizado', '==', valor.toLowerCase().trim()).get(),
+        clientesRef.where('nombre', '==', valor).get()
+      ]);
+
+      const docsUnicos = new Map();
+      res1.forEach(doc => docsUnicos.set(doc.id, doc));
+      res2.forEach(doc => docsUnicos.set(doc.id, doc));
+
+      const resultadosUnicos = Array.from(docsUnicos.values());
+
+      if (resultadosUnicos.length === 0) {
+        showError('buscarClienteInput', 'No se encontró ningún cliente', 'mensajeErrorBuscar', `Ningún cliente coincide con ese nombre.`);
+        return;
+      }
+
+      if (resultadosUnicos.length > 1) {
+        mostrarListaClientes({ forEach: cb => resultadosUnicos.forEach(cb) });
+      } else {
+        mostrarDatosCliente(resultadosUnicos[0]);
+        mostrarBotones();
+      }
+
+      return; // Salimos de la función porque ya gestionamos la búsqueda
+    }
+
+    // Para búsquedas normales (ID, teléfono, etc.)
+    querySnapshot = await clientesRef.where(campo, '==', valor).get();
 
     if (querySnapshot.empty) {
-      showError('buscarClienteInput', 'Error', 'mensajeErrorBuscar', `No se encontró ningún cliente con el ${campo}.`);
+      const campoAmigable = obtenerDescripcionCampo(campo);
+      console.log(`No se encontró ningún cliente con ese ${campoAmigable}: ${valor}`);
+      showError(
+        'buscarClienteInput',
+        `No se encontró ningún cliente con ese ${campoAmigable}`,
+        'mensajeErrorBuscar',
+        'Verifica el dato o intenta con otro campo como correo, teléfono o nombre.'
+      );
       return;
     }
 
@@ -38,7 +74,7 @@ async function buscarCliente(campo, valor) {
     }
   } catch (error) {
     console.error('Error buscando cliente:', error);
-    showError('buscarClienteInput', 'Error al buscar cliente', 'mensajeErrorBuscar', 'Ocurrió un error al buscar el cliente.');
+    showError('buscarClienteInput', 'Error al buscar cliente', 'mensajeErrorBuscar', `Ocurrió un error al buscar el cliente con el campo ${campoAmigable}.`);
   }
 }
 
@@ -129,7 +165,7 @@ document.getElementById('buscarPorNombreBtn').addEventListener('click', () => {
     return;
   }
 
-  buscarCliente('nombreNormalizado', valor.toLowerCase().trim());
+  buscarCliente('nombre', valor);
 });
 
 // Función para mostrar los datos del cliente seleccionado
@@ -292,7 +328,7 @@ btnGastarPuntos.addEventListener('click', () => {
   mostrarBotones();
 
   limpiarLabels();
-  
+
 
   // Muestra el contenedor para gastar puntos
   const gastarContainer = document.getElementById('gastar-container');
@@ -392,7 +428,7 @@ async function eliminarCliente() {
 
     // Resetea los inputs y muestra mensaje de éxito
     resetInputs();
-  //  showSuccessMessage();
+    //  showSuccessMessage();
   } catch (error) {
     console.error("Error al eliminar cliente:", error);
   }
@@ -665,11 +701,11 @@ const showValidationAndMessage = (element, isValid, successMessage, errorMessage
 function obtenerDescripcionCampo(campo) {
   switch (campo) {
     case 'telefono':
-      return 'número de teléfono';
+      return 'número de TELEFONO';
     case 'nombre':
-      return 'nombre';
+      return 'NOMBRE';
     case 'email':
-      return 'correo electrónico';
+      return 'CORREO ELECTRÓNICO';
     case 'clienteId':
       return 'ID';
     default:
