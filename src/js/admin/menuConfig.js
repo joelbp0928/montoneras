@@ -66,29 +66,30 @@ document.getElementById("addImageButton").addEventListener("click", function () 
   document.getElementById("menuImageInput").click();
 });
 
-// 📌 Función para contar imágenes en la carpeta "imgMenu"
-async function countMenuImages() {
-  try {
-    const folderRef = ref(storage, "imgMenu"); // 📂 Referencia a la carpeta imgMenu
-    const listResult = await listAll(folderRef); // 🔍 Listar archivos en la carpeta
-    return listResult.items.length; // 🔢 Retornar cantidad de imágenes
-  } catch (error) {
-    console.error("❌ Error al contar imágenes en Storage:", error);
-    return 0; // En caso de error, devolver 0
-  }
+// 📌 Obtener índice basado en la última imagen
+function obtenerSiguienteIndiceImagen(menuImages) {
+  if (!menuImages || menuImages.length === 0) return 1;
+
+  const numeros = menuImages.map(url => {
+    const match = url.match(/imgMenu%2Fmenu(\d+)\.(jpg|jpeg|png|webp)/);
+    return match ? parseInt(match[1]) : 0;
+  });
+
+  return Math.max(...numeros) + 1;
 }
+
 
 // 📌 Manejar la carga de imágenes
 document.getElementById("menuImageInput").addEventListener("change", async function (event) {
   const file = event.target.files[0];
   if (!file) return;
-  // 📌 Contar imágenes existentes antes de subir una nueva
-  const existingImageCount = await countMenuImages();
+
   const config = await getConfigFromFirestore();
   const images = config.menuImages || [];
 
   if (images.length < 10) {
-    const imageURL =  await uploadImage(file, "menu", existingImageCount); // 📂 Pasar el conteo de imágenes
+    const nuevoIndice = obtenerSiguienteIndiceImagen(images);
+    const imageURL = await uploadImage(file, "menu", nuevoIndice);
     images.push(imageURL);
     await saveConfigToFirestore({ menuImages: images });
     loadMenuImages(images);
@@ -96,6 +97,7 @@ document.getElementById("menuImageInput").addEventListener("change", async funct
     showmessage("🔟 Límite de 10 imágenes alcanzado.", "warning");
   }
 });
+
 
 // 📌 Función para eliminar una imagen del menú de Firestore y Storage
 async function removeImage(index) {
@@ -152,7 +154,7 @@ function makeImagesDraggable() {
       setTimeout(() => {
         this.style.display = "block";
         draggedItem = null;
-        saveNewOrder();
+      //  saveNewOrder();
       }, 0);
     });
 

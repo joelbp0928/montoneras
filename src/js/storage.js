@@ -13,7 +13,7 @@ export async function uploadImage(file, type, existingImageCount) {
             folder = "imgMenu"; // 📂 Carpeta específica para imágenes del menú
 
             // 🔢 Determinar el próximo nombre de archivo basado en las imágenes existentes
-            const nextIndex = existingImageCount + 1; // Contar imágenes existentes y agregar 1
+            const nextIndex = existingImageCount; // Contar imágenes existentes y agregar 1
             fileName = `menu${nextIndex}.png`; // 📌 Nombrar como menu1.png, menu2.png, etc.
         } else if (type === "configlogo") {
             fileName = "logo.png"; // 📌 Nombre fijo para logo
