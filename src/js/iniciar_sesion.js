@@ -14,29 +14,23 @@ async function handleSignIn(e) {
   e.preventDefault();
   const email = signInForm["login-email"].value;
   const password = signInForm["login-password"].value;
-  /*  if (email === "montoadmin@monto.com") {
-      // Redireccionar a otra página HTML
-      window.location.href = './html/indexadmin.html?login=true';
-      return
-    }*/
+  // Validación básica del formulario
   try {
     // Iniciar sesión con Firebase Auth
     const userCredentials = await signInWithEmailAndPassword(auth, email, password);
     const userId = userCredentials.user.uid;
     // Obtener rol del usuario
     const userDoc = await getDocs(query(collection(db, 'clientes'), where('clienteUid', '==', userId)));
-    
+
     if (!userDoc.empty) {
       const userData = userDoc.docs[0].data();
       if (userData.rol === "admin") {
         showmessage("Modo Administrador \n Activado", "success");
         window.location.href = "./html/indexadmin.html";
-        
-      } else {
-      //  showmessage("Acceso denegado. Solo para administradores.", "error");
       }
     } else {
-      throw new Error("Usuario no encontrado en la base de datos.");
+      showmessage("Uid de usuario no encontrado", "warning");
+      console.error("Usuario no encontrado en la base de datos.");
     }
 
     // Cierra el modal inicio de sesión
@@ -51,13 +45,17 @@ async function handleSignIn(e) {
   } catch (error) {
     // Manejo de errores mejorado
     if (error.code === 'auth/wrong-password') {
-      showmessage("Contraseña incorrecta", "error");
+      showmessage("🔐 Contraseña incorrecta", "warning");
     } else if (error.code === 'auth/user-not-found') {
-      showmessage("Correo no encontrado", "error");
+      showmessage("📧 Correo no encontrado", "warning");
+    } else if (error.code === 'auth/too-many-requests') {
+      showmessage("🚫 Demasiados intentos. Intenta más tarde.", "warning");
     } else {
-      showmessage("Error al iniciar sesión. Por favor, inténtalo de nuevo.", "error");
+      showmessage("❗Error al iniciar sesión. Por favor, inténtalo de nuevo.", "error");
       console.error("Error al iniciar sesión: ", error);
     }
+    // Opcional: limpiar consola para ocultar el 400
+    // console.clear();
   }
 }
 
