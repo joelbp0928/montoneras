@@ -1,7 +1,7 @@
 // 📦 Importamos las funciones necesarias desde otros archivos
 import { showmessage } from "../showmessage.js";
 import { initMenuConfig } from "./menuConfig.js";
-import { initAdminConfig, setupAdminEventListeners, updatePointsFields } from "./configAdmin.js";
+import { initAdminConfig, setupAdminEventListeners } from "./configAdmin.js";
 import "../cerrar_sesion.js";  // 🔒 Manejamos el cierre de sesión
 
 // 🟢 Inicializar configuración del menú cuando la página cargue
@@ -9,8 +9,6 @@ document.addEventListener("DOMContentLoaded", function () {
   initMenuConfig(); 
   initAdminConfig(); 
   setupAdminEventListeners(); 
-
-  updatePointsFields(); // 🔥 Se asegura de que los campos correctos se oculten/activen
 });
 
 

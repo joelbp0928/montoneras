@@ -78,7 +78,6 @@ function obtenerSiguienteIndiceImagen(menuImages) {
   return Math.max(...numeros) + 1;
 }
 
-
 // 📌 Manejar la carga de imágenes
 document.getElementById("menuImageInput").addEventListener("change", async function (event) {
   const file = event.target.files[0];
