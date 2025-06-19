@@ -41,12 +41,12 @@ export function listenForConfigChanges() {
 
             if (data.logo) {
                 document.getElementById("logoImage").src = data.logo;
-            //    console.log("🔄 Logo actualizado en tiempo real:", data.logo);
+                //    console.log("🔄 Logo actualizado en tiempo real:", data.logo);
             }
 
             if (data.background) {
                 document.querySelector(".background-image").style.backgroundImage = `url(${data.background})`;
-              //  console.log("🔄 Background actualizado en tiempo real:", data.background);
+                //  console.log("🔄 Background actualizado en tiempo real:", data.background);
             }
         }
     });
