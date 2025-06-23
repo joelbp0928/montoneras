@@ -19,20 +19,24 @@
       href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
     />
   </head>
-
+  <!-- 🔒 Botón de cerrar sesión flotante -->
+  <a href="#" id="logout" class="logout-icon logged-in" title="Cerrar sesión">
+    <i class="fas fa-sign-out-alt"></i>
+  </a>
   <body>
     <div class="background-image"></div>
     <div>
-      <div class="container">
-        <img id="logoImage" src="img/LOGO MONTO.png" alt="Logo" class="logo" />
+      <div class="logo-container">
+        <img id="logoImage" src="img/LOGO MONTO.png" alt="Logo" />
       </div>
-      <div class="container p-4">
+      <div>
         <div class="row">
           <div class="col-md-6 offset-md-3">
             <ul class="list-group posts"></ul>
           </div>
         </div>
       </div>
+
       <!-- 🔹 Contenedor de botones -->
       <div class="auth-buttons-container">
         <a
@@ -51,13 +55,12 @@
         >
           Registrarse
         </a>
-        <a href="#" class="auth-button logged-in" id="logout">Cerrar sesión</a>
+        <!-- <a href="#" class="auth-button logged-in" id="logout">Cerrar sesión</a>-->
+        <!-- 🔹 Botón para abrir el Menú -->
+        <div class="menu-button-container">
+          <a href="#" type="button" class="menu-button" id="openMenu"> Menú </a>
+        </div>
       </div>
-      <!-- 🔹 Botón para abrir el Menú (Centrado y con color personalizado) -->
-      <div class="menu-button-container">
-        <a href="#" type="button" class="menu-button" id="openMenu"> Menú </a>
-      </div>
-
       <!-- 🔹 Botones de redes sociales -->
       <div class="social-buttons-container">
         <a
@@ -87,9 +90,9 @@
         >
           <i class="fab fa-whatsapp"></i>
         </a>
+    
       </div>
     </div>
-
     <!-- 🔹 Modal con Carrusel -->
     <div class="modal fade" id="menuModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg">
@@ -352,7 +355,6 @@
         </div>
       </div>
     </div>
-
     <!-- Modal validar codigo-->
     <div
       class="modal fade"
@@ -393,7 +395,6 @@
         </div>
       </div>
     </div>
-    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>

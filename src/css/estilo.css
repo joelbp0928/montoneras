@@ -11,6 +11,12 @@ body {
   /* Elimina el relleno del cuerpo */
 }
 
+body, html {
+  height: 100vh;
+  overflow-y: auto;
+}
+
+
 .background-image {
   position: fixed;
   top: 0;
@@ -24,16 +30,17 @@ body {
 }
 
 /* Contenedor principal */
-.container {
-  max-width: 750px;
-  /* Establece el ancho máximo del contenedor */
-  margin: auto;
-  /* Centra el contenedor horizontalmente y agrega un margen superior e inferior */
-  padding: 20px;
-  /* Agrega relleno al contenedor */
-  position: relative;
-  /* Añade esta línea para establecer una referencia de posición para el contenedor */
+.logo-container {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-bottom: 0;
+  text-align: center;
 }
+.logo-container img {
+  max-width: 140px;
+  height: auto;
+}
+
 /* Contenedor principal */
 .container-inventario {
   max-width: auto;
@@ -686,12 +693,12 @@ img {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 15px;
+  margin-top: auto;
 }
 
 /* 🔹 Estilo del Botón de Menú (Rosa más claro) */
 .menu-button {
-  background-color: #ff66b2; /* Rosa claro */
+  background-color: #fa3698; /* Rosa claro */
   color: white;
   text-decoration: none;
   font-size: 18px;
@@ -743,7 +750,6 @@ img {
   transform: scale(1.1);
 }
 
-
 .facebook {
   background-color: #1877f2;
 }
@@ -760,11 +766,19 @@ img {
   transform: scale(1.1);
 }
 
+.didi {
+  background-color: #ff2e57; /* color institucional de Didi Food */
+}
+.didi:hover {
+  background-color: #e02045;
+  transform: scale(1.1);
+}
+
 /* Estilo para centrar y mejorar la bienvenida */
 .welcome-container {
   text-align: center;
   margin: auto;
-  max-width: 90%;
+  max-width: 900%;
 }
 
 .welcome-message {
@@ -838,4 +852,84 @@ img {
 .carousel-control-prev,
 .carousel-control-next {
   width: 10%;
+}
+
+.cliente-card-vip {
+  max-width: 500px;
+  margin: 30px auto;
+  background: linear-gradient(180deg, #bd228e 0%, #ff87c4 100%);
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(189, 34, 142, 0.4);
+  overflow: hidden;
+  font-family: 'Arial', sans-serif;
+  color: white;
+  animation: fadeIn 0.6s ease-in-out;
+  border: 3px solid #fff;
+}
+
+.cliente-card-vip-header {
+  text-align: center;
+  padding: 25px 20px 10px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.cliente-card-vip-header h2 {
+  font-size: 28px;
+  margin-bottom: 5px;
+}
+
+.cliente-card-vip-header i {
+  color: gold;
+}
+
+.cliente-card-vip-header p {
+  font-style: italic;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.cliente-card-vip-body {
+  background-color: white;
+  color: #333;
+  padding: 20px 25px;
+  border-radius: 0 0 20px 20px;
+}
+
+.cliente-card-vip-body p {
+  font-size: 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.cliente-card-vip-body i {
+  margin-right: 8px;
+  color: #bd228e;
+}
+
+.cliente-card-vip-footer {
+  background-color: #ffe6f2;
+  text-align: center;
+  font-size: 14px;
+  padding: 10px 15px;
+  color: #bd228e;
+  border-top: 1px solid #ffb3d9;
+}
+.logout-icon {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  background-color: #bd228e;
+  color: white;
+  font-size: 20px;
+  padding: 10px 12px;
+  border-radius: 40%;
+  z-index: 1000;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.logout-icon:hover {
+  background-color: #a11884;
+  transform: scale(1.1);
 }

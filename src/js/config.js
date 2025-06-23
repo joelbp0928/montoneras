@@ -3,7 +3,7 @@ import { doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.10
 import { db } from "./firebase.js";
 
 // 📌 Obtener referencias a los elementos HTML
-const logoElement = document.querySelector(".logo");
+const logoElement = document.getElementById("logoImage");
 const backgroundElement = document.querySelector(".background-image");
 
 // 📌 Función para cargar configuración desde Firestore

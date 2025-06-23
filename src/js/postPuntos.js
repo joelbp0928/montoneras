@@ -31,12 +31,20 @@ export const setupPosts = async (data, email, telefono) => {
 
       if (post.email === email || post.telefono === telefono) {
         html += `
-          <div class="list-group-item list-group-item-black">
-            <h2 class="text-center welcome-message"><strong>¡Hola, ${post.nombre}! 🎉</strong></h2>
-            <h3 class="text-center">Tu número de cliente: <strong>${post.clienteId}</strong></h3>
-            <h4 class="text-center">Puntos acumulados: <strong>${post.puntos}</strong></h4>
-            ${post.email === email ? `<p class="text-center">📧 ${post.email}</p>` : ""}
-            ${post.telefono === telefono ? `<p class="text-center">📱 ${post.telefono}</p>` : ""}
+          <div class="cliente-card-vip">
+            <div class="cliente-card-vip-header">
+              <h2><i class="fas fa-crown me-2"></i>¡Hola, ${post.nombre}!</h2>
+              <p>Cliente Frecuente</p>
+            </div>
+            <div class="cliente-card-vip-body">
+              <p><i class="fas fa-id-card me-2"></i><strong>ID Cliente:</strong> ${post.clienteId}</p>
+              <p><i class="fas fa-star me-2"></i><strong>Puntos acumulados:</strong> ${post.puntos}</p>
+              ${post.email ? `<p><i class="fas fa-envelope me-2"></i><strong>Email:</strong> ${post.email}</p>` : ""}
+              ${post.telefono ? `<p><i class="fas fa-phone-alt me-2"></i><strong>Teléfono:</strong> ${post.telefono}</p>` : ""}
+              <div class="cliente-card-vip-footer">
+                <i class="fas fa-info-circle me-2"></i>
+                Recuerda dar tu número al cajero en cada compra para acumular puntos. 💳
+              </div>
           </div>
         `;
         // 🎉 Mostrar mensaje de bienvenida
