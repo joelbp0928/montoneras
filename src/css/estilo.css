@@ -11,11 +11,11 @@ body {
   /* Elimina el relleno del cuerpo */
 }
 
-body, html {
+body,
+html {
   height: 100vh;
   overflow-y: auto;
 }
-
 
 .background-image {
   position: fixed;
@@ -151,7 +151,7 @@ h1 {
   /* Agrega un margen inferior entre los botones */
   font-size: 20px;
   /* Establece el tamaño de la fuente del botón */
-  position:relative;
+  position: relative;
   overflow: hidden;
   border: none;
   box-shadow: none;
@@ -236,7 +236,7 @@ h1 {
   box-shadow: none;
   /* Quita el efecto de relieve */
 }
-.button-container-telefono:hover button{
+.button-container-telefono:hover button {
   background-color: #115391;
 }
 #inputTelefono {
@@ -283,12 +283,12 @@ footer p {
   /* Elimina los márgenes del párrafo en el pie de página */
 }
 
-#leyenda-info{
+#leyenda-info {
   text-align: center;
   font-size: 10px;
-  margin:auto;
+  margin: auto;
 }
-#nombre-cliente{
+#nombre-cliente {
   font-size: 100px;
 }
 
@@ -298,12 +298,9 @@ img {
   /* Convierte la imagen en un bloque */
   margin: 0 auto;
   /* Centra la imagen horizontalmente */
-  max-width: 60%;
+  max-width: 100%;
   /* Establece el ancho máximo de la imagen al 100% del contenedor */
   height: auto;
-  /* Ajusta la altura de la imagen de forma automática */
-  margin-bottom: 10px;
-  /* Agrega un margen inferior a la imagen */
 }
 
 .error {
@@ -465,7 +462,7 @@ img {
   text-decoration: none;
 }
 
-.iniciar-sesion-button:hover button{
+.iniciar-sesion-button:hover button {
   background-color: #ad206e;
 }
 
@@ -501,8 +498,8 @@ img {
   box-shadow: none;
   /* Quita el efecto de relieve */
 }
-.btn-telefono:hover{
-  background-color: #1a4f81 ;
+.btn-telefono:hover {
+  background-color: #1a4f81;
 }
 
 .button {
@@ -593,13 +590,13 @@ img {
 #calcularGastoPuntosBtn {
   background-color: rgb(245, 32, 32);
 }
-#calcularGastoPuntosBtn:hover{
+#calcularGastoPuntosBtn:hover {
   background-color: rgb(179, 39, 39);
 }
 #eliminarClienteBtn {
   background-color: rgb(235, 61, 61);
 }
-#eliminarClienteBtn:hover{
+#eliminarClienteBtn:hover {
   background-color: rgb(179, 48, 48);
 }
 #actualizarDatosClienteBtn {
@@ -693,7 +690,7 @@ img {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: auto;
+  margin-top: 10px;
 }
 
 /* 🔹 Estilo del Botón de Menú (Rosa más claro) */
@@ -766,12 +763,47 @@ img {
   transform: scale(1.1);
 }
 
-.didi {
-  background-color: #ff2e57; /* color institucional de Didi Food */
+/* 🛵 Contenedor específico de apps de delivery */
+.delivery-apps-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 10px;
+  margin-bottom: 20px;
 }
-.didi:hover {
-  background-color: #e02045;
+
+/* 🛍️ Botones de delivery */
+.delivery-button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden; /* Asegura que la imagen no se salga del círculo */
+}
+
+.delivery-button:hover {
   transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+}
+
+/* 📦 Imágenes internas */
+.delivery-button img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+}
+
+/* 🎨 Colores personalizados por app */
+.delivery-button.uber {
+  border-color: #000;
+}
+.delivery-button.rappi {
+  border-color: #ff4d4d;
 }
 
 /* Estilo para centrar y mejorar la bienvenida */
@@ -789,12 +821,11 @@ img {
   /*margin-bottom: 10px;*/
 }
 
-
 /* 🔹 Contenedor de los botones de autenticación */
 .auth-buttons-container {
   display: flex;
   justify-content: center;
-  gap: 20px;  /* Espacio entre botones */
+  gap: 20px; /* Espacio entre botones */
   margin-top: 20px;
 }
 
@@ -819,9 +850,8 @@ img {
 
 /* 🔹 Ajuste para pantallas pequeñas */
 @media (max-width: 768px) {
-
   .auth-buttons-container {
-    flex-direction: column;  /* En móviles, los botones se apilan */
+    flex-direction: column; /* En móviles, los botones se apilan */
     gap: 10px;
   }
 
@@ -829,7 +859,7 @@ img {
     width: 80%; /* Botones más anchos en móvil */
     margin: auto;
   }
-  .menu-button{
+  .menu-button {
     width: 60%; /* Botones más anchos en móvil */
     margin: auto;
   }
@@ -861,7 +891,7 @@ img {
   border-radius: 20px;
   box-shadow: 0 8px 20px rgba(189, 34, 142, 0.4);
   overflow: hidden;
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   color: white;
   animation: fadeIn 0.6s ease-in-out;
   border: 3px solid #fff;
@@ -932,4 +962,11 @@ img {
 .logout-icon:hover {
   background-color: #a11884;
   transform: scale(1.1);
+}
+
+.qr-button-container{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0px;
 }

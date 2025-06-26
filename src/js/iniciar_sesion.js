@@ -24,6 +24,13 @@ async function handleSignIn(e) {
 
     if (!userDoc.empty) {
       const userData = userDoc.docs[0].data();
+      localStorage.setItem("clienteId", userData.clienteId);
+      localStorage.setItem("clienteNombre", userData.nombre);
+      localStorage.setItem("clienteEmail", userData.email);
+      localStorage.setItem("clienteTelefono", userData.telefono || "");
+      localStorage.setItem("clientePuntos", userData.puntos?.toString() || "");
+      localStorage.setItem("clienteUid", userData.clienteUid || "");
+
       if (userData.rol === "admin") {
         showmessage("Modo Administrador \n Activado", "success");
         window.location.href = "./html/indexadmin.html";

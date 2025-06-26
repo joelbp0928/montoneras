@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Manejo de autenticación
 onAuthStateChanged(auth, async (user) => {
     // Verificar si el usuario está autenticado (logueado)
+    console.log("Estado de autenticación cambiado:", user);
     if (user) {
         logincheck(user); // Realizar el checkeo del usuario logueado
         try {
@@ -42,9 +43,25 @@ onAuthStateChanged(auth, async (user) => {
             showmessage("Error al acceder.", "error");
         }
     } else {
-        // Si el usuario no está autenticado (sin sesión activa)
-        // Configurar las publicaciones en la interfaz con un arreglo vacío
-        setupPosts([]);
-        logincheck(user); // Realizar el checkeo para usuarios sin sesión activa
+        // Si no hay sesión, intenta cargar desde localStorage
+        const clienteId = localStorage.getItem("clienteId");
+        const clienteNombre = localStorage.getItem("clienteNombre");
+        const clienteEmail = localStorage.getItem("clienteEmail");
+
+        if (clienteId && clienteNombre) {
+            // Simular estructura de doc para setupPosts
+            const fakeDoc = {
+                data: () => ({
+                    clienteId,
+                    nombre: clienteNombre,
+                    email: clienteEmail,
+                    puntos: "?" // Si quieres dejarlo vacío o estimado
+                })
+            };
+            setupPosts([fakeDoc], clienteEmail, null);
+        } else {
+            setupPosts([]);
+        }
+        logincheck(null);
     }
 });

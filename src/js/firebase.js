@@ -1,8 +1,8 @@
 // Importar las funciones necesarias para inicializar Firebase
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-auth.js";
+import { getAuth, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-storage.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-app.js";
 
 // Configurar la información de tu proyecto de Firebase
 export const firebaseConfig = {
@@ -25,3 +25,12 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 export const storage = getStorage(app); // Inicializa Firebase Storage
+
+// 👇 Establecer persistencia local
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log("✅ Sesión persistente habilitada.");
+  })
+  .catch((error) => {
+    console.error("⚠️ Error al establecer persistencia:", error);
+  });
