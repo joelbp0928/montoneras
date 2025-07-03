@@ -6,6 +6,11 @@
     <title>Sistema de Puntos - Registro</title>
     <link
       rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    />
+
+    <link
+      rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
     />
     <link
@@ -17,6 +22,10 @@
       rel="stylesheet"
       type="text/css"
       href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.7.7/dist/css/tempus-dominus.min.css"
     />
   </head>
   <!-- 🔒 Botón de cerrar sesión flotante -->
@@ -219,15 +228,17 @@
                 />
               </div>
               <div>
-                <label for="nacimiento">Fecha Nacimieno:</label>
-                <input
-                  type="date"
-                  id="nacimiento"
-                  class="form-control mb-3t"
-                  value="2000-01-01"
-                  placeholder="dd/mm/aaaa"
-                  required
-                />
+                <label for="nacimiento">Fecha de nacimiento:</label>
+                <div class="input-group">
+                  <input
+                    type="text"
+                    id="nacimiento"
+                    class="form-control mb-3t"
+                    placeholder="dd/mm/aaaa"
+                    required
+                    data-td-target="#nacimiento"
+                  />
+                </div>
               </div>
               <span id="mensajeErrorNacimiento"></span>
               <div>
@@ -252,7 +263,7 @@
                 />
               </div>
               <div>
-                <label for="confirmPassword">Confirmar Contraseña:</label>
+                <label for="confirmPassword">Confirmar contraseña:</label>
                 <input
                   type="password"
                   id="confirmPassword"
@@ -415,6 +426,121 @@
         </div>
       </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.7.7/dist/js/tempus-dominus.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.7.7/dist/locales/es.js"></script>
+    <script>
+      // Función mejorada para inicializar Tempus Dominus
+      function initTempusDominus() {
+        const signupModal = document.getElementById("signupModal");
+
+        if (!signupModal) return;
+
+        // Inicializa solo cuando el modal se muestra
+        signupModal.addEventListener("shown.bs.modal", function () {
+          const nacimientoField = document.getElementById("nacimiento");
+
+          if (!nacimientoField || nacimientoField._picker) return;
+
+          try {
+            // Añadimos estilos para las flechas
+            const style = document.createElement("style");
+            style.textContent = `
+              .tempus-dominus-widget .toolbar .chevron-container::before {
+                font-family: 'bootstrap-icons';
+                content: "\\F284"; /* Icono de flecha izquierda */
+                font-size: 1.5rem;
+              }
+              .tempus-dominus-widget .toolbar .chevron-container.chevron-next::before {
+                content: "\\F285"; /* Icono de flecha derecha */
+              }
+            `;
+            document.head.appendChild(style);
+
+            const picker = new tempusDominus.TempusDominus(nacimientoField, {
+              localization: {
+                locale: "es",
+                format: "dd/MM/yyyy",
+              },
+              display: {
+                icons: {
+                  previous: "bi bi-chevron-left",
+                  next: "bi bi-chevron-right"
+                },
+                theme: "dark",
+                viewMode: "years", // Inicia en selección de año
+                components: {
+                  decades: true,
+                  year: true,
+                  month: true,
+                  date: true,
+                  hours: false,
+                  minutes: false,
+                  seconds: false,
+                },
+                buttons: {
+                  today: false,
+                  clear: false,
+                  close: true,
+                },
+
+                theme: window.innerWidth < 768 ? "light" : "auto",
+              },
+              restrictions: {
+                maxDate: new Date(
+                  new Date().setFullYear(new Date().getFullYear() - 16)
+                ),
+                minDate: new Date(1950, 0, 1), // Año mínimo 1950
+              },
+              defaultDate: new Date(1990, 0, 1), // Fecha por defecto en el medio del rango
+              viewDate: new Date(2000, 0, 1), // Vista inicial centrada en 1980
+            });
+
+            // Marca el campo como inicializado
+            nacimientoField._picker = true;
+
+            // Ajustes específicos para móviles
+            if (window.innerWidth < 768) {
+              const pickerElement = picker._element;
+              pickerElement.style.fontSize = "14px";
+            }
+          } catch (error) {
+            console.error("Error al inicializar Tempus Dominus:", error);
+          }
+        });
+
+        // También inicializa si el modal ya está abierto al cargar
+        if (signupModal.classList.contains("show")) {
+          const event = new Event("shown.bs.modal");
+          signupModal.dispatchEvent(event);
+        }
+      }
+
+      // Inicialización segura cuando todo esté listo
+      document.addEventListener("DOMContentLoaded", function () {
+        // Verifica si Tempus Dominus está cargado
+        if (typeof tempusDominus === "undefined") {
+          console.error("Tempus Dominus no está cargado correctamente");
+          return;
+        }
+
+        initTempusDominus();
+      });
+
+      // Maneja posibles redimensionamientos
+      window.addEventListener("resize", function () {
+        const pickerInstance = document.getElementById("nacimiento")?._picker;
+        if (pickerInstance) {
+          pickerInstance.updateOptions({
+            display: {
+              theme: window.innerWidth < 768 ? "light" : "auto",
+            },
+          });
+        }
+      });
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
