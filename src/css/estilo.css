@@ -970,3 +970,33 @@ img {
   align-items: center;
   margin-top: 0px;
 }
+/* Ajustes para el datepicker en móviles */
+@media (max-width: 767.98px) {
+  .td-picker {
+    width: 95vw !important;
+    left: 2.5vw !important;
+    transform: scale(0.95);
+    transform-origin: top center;
+  }
+  
+  .td-calendar {
+    font-size: 14px !important;
+  }
+  
+  .td-calendar .td-day {
+    min-width: 30px !important;
+    height: 30px !important;
+    line-height: 30px !important;
+  }
+}
+
+/* Estilo para el grupo de entrada */
+.input-group-text {
+  cursor: pointer;
+  background-color: #f8f9fa;
+  transition: background-color 0.2s;
+}
+
+.input-group-text:hover {
+  background-color: #e9ecef;
+}
