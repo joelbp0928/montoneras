@@ -1000,3 +1000,31 @@ img {
 .input-group-text:hover {
   background-color: #e9ecef;
 }
+
+/* 🔧 Ajustar margen inferior de la tarjeta */
+.cliente-card-vip {
+  margin-bottom: 10px !important;
+}
+
+/* 🔧 Reducir espacio del botón de Menú */
+.menu-button-container {
+  margin-top: 5px !important;
+  margin-bottom: 5px !important;
+}
+
+/* 🔧 Compactar íconos sociales y delivery */
+.social-buttons-container {
+  margin-top: 10px !important;
+  margin-bottom: 10px !important;
+  gap: 10px !important;
+}
+.delivery-apps-container {
+  margin-top: 5px !important;
+  margin-bottom: 10px !important;
+  gap: 10px !important;
+}
+
+body {
+  overflow-y: auto;
+  max-height: 100vh;
+}

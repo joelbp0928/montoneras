@@ -81,7 +81,7 @@ export async function guardarregistro(email, auth, password) {
             nacimiento: nacimiento,
             puntos: 0,
             fechaRegistro: firebase.firestore.Timestamp.now(), // Agrega la fecha y hora de registro
-            ultimaFechaIngreso: "",
+            ultima_actualizacion: "",
             ultimosPuntos: "",
             ultimaFechaIngresoGastar: "",
             ultimosPuntosGastar: ""

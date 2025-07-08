@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sistema de Puntos - Registro</title>
+    <link rel="stylesheet" href="css/estilo.css" />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
@@ -17,7 +18,6 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css"
     />
-    <link rel="stylesheet" href="css/estilo.css" />
     <link
       rel="stylesheet"
       type="text/css"
@@ -29,7 +29,7 @@
     />
   </head>
   <!-- 🔒 Botón de cerrar sesión flotante -->
-  <a href="#" id="logout" class="logout-icon logged-in" title="Cerrar sesión">
+  <a href="#" id="logout" class="logout-icon logged-in d-none" title="Cerrar sesión">
     <i class="fas fa-sign-out-alt"></i>
   </a>
   <body>
@@ -50,7 +50,7 @@
       <div class="auth-buttons-container">
         <a
           href="#"
-          class="auth-button logged-out"
+          class="auth-button logged-out d-none"
           data-bs-toggle="modal"
           data-bs-target="#signinModal"
         >
@@ -58,7 +58,7 @@
         </a>
         <a
           href="#"
-          class="auth-button logged-out"
+          class="auth-button logged-out d-none"
           data-bs-toggle="modal"
           data-bs-target="#signupModal"
         >
@@ -430,117 +430,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.7.7/dist/js/tempus-dominus.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.7.7/dist/locales/es.js"></script>
-    <script>
-      // Función mejorada para inicializar Tempus Dominus
-      function initTempusDominus() {
-        const signupModal = document.getElementById("signupModal");
-
-        if (!signupModal) return;
-
-        // Inicializa solo cuando el modal se muestra
-        signupModal.addEventListener("shown.bs.modal", function () {
-          const nacimientoField = document.getElementById("nacimiento");
-
-          if (!nacimientoField || nacimientoField._picker) return;
-
-          try {
-            // Añadimos estilos para las flechas
-            const style = document.createElement("style");
-            style.textContent = `
-              .tempus-dominus-widget .toolbar .chevron-container::before {
-                font-family: 'bootstrap-icons';
-                content: "\\F284"; /* Icono de flecha izquierda */
-                font-size: 1.5rem;
-              }
-              .tempus-dominus-widget .toolbar .chevron-container.chevron-next::before {
-                content: "\\F285"; /* Icono de flecha derecha */
-              }
-            `;
-            document.head.appendChild(style);
-
-            const picker = new tempusDominus.TempusDominus(nacimientoField, {
-              localization: {
-                locale: "es",
-                format: "yyyy-dd-MM",
-              },
-              display: {
-                icons: {
-                  previous: "bi bi-chevron-left",
-                  next: "bi bi-chevron-right"
-                },
-                theme: "dark",
-                viewMode: "years", // Inicia en selección de año
-                components: {
-                  decades: true,
-                  year: true,
-                  month: true,
-                  date: true,
-                  hours: false,
-                  minutes: false,
-                  seconds: false,
-                },
-                buttons: {
-                  today: false,
-                  clear: false,
-                  close: true,
-                },
-
-                theme: window.innerWidth < 768 ? "light" : "auto",
-              },
-              restrictions: {
-                maxDate: new Date(
-                  new Date().setFullYear(new Date().getFullYear() - 16)
-                ),
-                minDate: new Date(1950, 0, 1), // Año mínimo 1950
-              },
-              defaultDate: new Date(1990, 0, 1), // Fecha por defecto en el medio del rango
-              viewDate: new Date(2000, 0, 1), // Vista inicial centrada en 1980
-            });
-
-            // Marca el campo como inicializado
-            nacimientoField._picker = true;
-
-            // Ajustes específicos para móviles
-            if (window.innerWidth < 768) {
-              const pickerElement = picker._element;
-              pickerElement.style.fontSize = "14px";
-            }
-          } catch (error) {
-            console.error("Error al inicializar Tempus Dominus:", error);
-          }
-        });
-
-        // También inicializa si el modal ya está abierto al cargar
-        if (signupModal.classList.contains("show")) {
-          const event = new Event("shown.bs.modal");
-          signupModal.dispatchEvent(event);
-        }
-      }
-
-      // Inicialización segura cuando todo esté listo
-      document.addEventListener("DOMContentLoaded", function () {
-        // Verifica si Tempus Dominus está cargado
-        if (typeof tempusDominus === "undefined") {
-          console.error("Tempus Dominus no está cargado correctamente");
-          return;
-        }
-
-        initTempusDominus();
-      });
-
-      // Maneja posibles redimensionamientos
-      window.addEventListener("resize", function () {
-        const pickerInstance = document.getElementById("nacimiento")?._picker;
-        if (pickerInstance) {
-          pickerInstance.updateOptions({
-            display: {
-              theme: window.innerWidth < 768 ? "light" : "auto",
-            },
-          });
-        }
-      });
-    </script>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>

@@ -18,66 +18,161 @@ const datosAdicionales = document.getElementById('datosAdicionales');
 const flecha = document.getElementById('flecha');
 const buscarInput = document.getElementById('buscarClienteInput');
 
-// Función para realizar búsqueda genérica de cliente
+// Importar módulos adicionales para Supabase
+import { supabase } from '../config-supabase.js';
+
+// Función para determinar dónde buscar basado en el ID
+function determinarFuenteBusqueda(valor) {
+  // Si es búsqueda por ID numérico
+  if (/^\d+$/.test(valor)) {
+    const id = parseInt(valor);
+    return id >= 3000 ? 'supabase' : 'firebase';
+  }
+  // Para otros campos (nombre, teléfono, email) buscar en ambos
+  return 'ambos';
+}
+
+// Función modificada para buscar cliente
 async function buscarCliente(campo, valor) {
   try {
-    let querySnapshot;
+    const fuente = determinarFuenteBusqueda(valor);
+    let resultados = [];
 
-    if (campo === 'nombre') {
-      // 🔍 Buscar por nombreNormalizado Y por nombre
-      const [res1, res2] = await Promise.all([
-        clientesRef.where('nombreNormalizado', '==', valor.toLowerCase().trim()).get(),
-        clientesRef.where('nombre', '==', valor).get()
-      ]);
-
-      const docsUnicos = new Map();
-      res1.forEach(doc => docsUnicos.set(doc.id, doc));
-      res2.forEach(doc => docsUnicos.set(doc.id, doc));
-
-      const resultadosUnicos = Array.from(docsUnicos.values());
-
-      if (resultadosUnicos.length === 0) {
-        showError('buscarClienteInput', 'No se encontró ningún cliente', 'mensajeErrorBuscar', `Ningún cliente coincide con ese nombre.`);
-        return;
-      }
-
-      if (resultadosUnicos.length > 1) {
-        mostrarListaClientes({ forEach: cb => resultadosUnicos.forEach(cb) });
-      } else {
-        mostrarDatosCliente(resultadosUnicos[0]);
-        mostrarBotones();
-      }
-
-      return; // Salimos de la función porque ya gestionamos la búsqueda
+    // Buscar en Firebase si corresponde
+    if (fuente === 'firebase' || fuente === 'ambos') {
+      const firebaseResults = await buscarEnFirebase(campo, valor);
+      resultados = resultados.concat(firebaseResults);
     }
 
-    // Para búsquedas normales (ID, teléfono, etc.)
-    querySnapshot = await clientesRef.where(campo, '==', valor).get();
+    // Buscar en Supabase si corresponde
+    if (fuente === 'supabase' || fuente === 'ambos') {
+      const supabaseResults = await buscarEnSupabase(campo, valor);
+      // Marcar los resultados como de Supabase
+      const resultadosSupabase = supabaseResults.map(item => ({
+        ...item,
+        _fuente: 'supabase'
+      }));
+      resultados = resultados.concat(resultadosSupabase);
+    }
 
-    if (querySnapshot.empty) {
-      const campoAmigable = obtenerDescripcionCampo(campo);
-      console.log(`No se encontró ningún cliente con ese ${campoAmigable}: ${valor}`);
-      showError(
-        'buscarClienteInput',
-        `No se encontró ningún cliente con ese ${campoAmigable}`,
-        'mensajeErrorBuscar',
-        'Verifica el dato o intenta con otro campo como correo, teléfono o nombre.'
-      );
+    // Manejar los resultados
+    if (resultados.length === 0) {
+      mostrarErrorNoEncontrado(campo, valor);
       return;
     }
 
-    if (querySnapshot.size > 1) {
-      mostrarListaClientes(querySnapshot);
+    if (resultados.length > 1) {
+      mostrarListaClientes(resultados);
     } else {
-      mostrarDatosCliente(querySnapshot.docs[0]);
+      mostrarDatosCliente(resultados[0]);
       mostrarBotones();
     }
   } catch (error) {
     console.error('Error buscando cliente:', error);
-    showError('buscarClienteInput', 'Error al buscar cliente', 'mensajeErrorBuscar', `Ocurrió un error al buscar el cliente con el campo ${campoAmigable}.`);
+    showError('buscarClienteInput', 'Error al buscar cliente', 'mensajeErrorBuscar', `Ocurrió un error al buscar el cliente.`);
   }
 }
 
+// Función para buscar en Firebase
+async function buscarEnFirebase(campo, valor) {
+  let querySnapshot;
+
+  if (campo === 'nombre') {
+    const [res1, res2] = await Promise.all([
+      clientesRef.where('nombreNormalizado', '==', valor.toLowerCase().trim()).get(),
+      clientesRef.where('nombre', '==', valor).get()
+    ]);
+
+    const docsUnicos = new Map();
+    res1.forEach(doc => docsUnicos.set(doc.id, doc));
+    res2.forEach(doc => docsUnicos.set(doc.id, doc));
+
+    return Array.from(docsUnicos.values());
+  }
+
+  querySnapshot = await clientesRef.where(campo, '==', valor).get();
+  return querySnapshot.docs;
+}
+
+// Función para buscar en Supabase
+async function buscarEnSupabase(campo, valor) {
+  let query = supabase.from('clientes').select('*');
+
+  // Mapear nombres de campos diferentes entre Firebase y Supabase
+  const campoMapeado = {
+    'clienteId': 'cliente_id',
+    'puntos': 'puntos_actuales',
+    'nombreNormalizado': 'nombre_normalizado'
+  }[campo] || campo;
+
+  if (campo === 'nombre') {
+    query = query.ilike('nombre', `%${valor}%`);
+  } else {
+    query = query.eq(campoMapeado, valor);
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+
+  // Devolver los datos directamente sin envolverlos
+  return data;
+}
+
+// Función para mostrar error cuando no se encuentra cliente
+function mostrarErrorNoEncontrado(campo, valor) {
+  const campoAmigable = obtenerDescripcionCampo(campo);
+  showError(
+    'buscarClienteInput',
+    `No se encontró ningún cliente con ese ${campoAmigable}`,
+    'mensajeErrorBuscar',
+    'Verifica el dato o intenta con otro campo como correo, teléfono o nombre.'
+  );
+}
+
+// Modificar la función mostrarDatosCliente para manejar ambos formatos
+/*function mostrarDatosCliente(doc) {
+  datosClienteContainer.style.display = 'block';
+  
+  // Obtener datos tanto para Firebase como Supabase
+  const clienteData = doc.data ? doc.data() : doc;
+  const fechaRegistro = clienteData.fechaRegistro 
+    ? (clienteData.fechaRegistro.toDate ? clienteData.fechaRegistro.toDate() : new Date(clienteData.fechaRegistro))
+    : 'N/A';
+
+  // Mapeo de datos
+  const mapeoElementos = {
+    clienteId: clienteData.clienteId || clienteData.cliente_id,
+    clientePuntos: clienteData.puntos || clienteData.puntos_actuales,
+    clienteNombre: clienteData.nombre,
+    clienteAlcaldia: clienteData.alcaldia,
+    clienteColonia: clienteData.colonia,
+    clienteNacimiento: clienteData.nacimiento,
+    clienteTelefono: clienteData.telefono,
+    clienteEmail: clienteData.email,
+    clienteUltimaFecha: clienteData.ultimaFechaIngreso,
+    clienteUltimosPuntos: clienteData.ultimosPuntos,
+    clienteUltimaFechaGastar: clienteData.ultimaFechaIngresoGastar,
+    clienteUltimosPuntosGastar: clienteData.ultimosPuntosGastar,
+    fechaRegistro: fechaRegistro
+  };
+
+  // Actualizar la UI
+  for (const [id, value] of Object.entries(mapeoElementos)) {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+      elemento.textContent = value || 'N/A';
+    }
+  }
+  
+  // Guardar referencia al cliente para operaciones posteriores
+  sessionStorage.setItem('clienteActual', JSON.stringify({
+    id: doc.id,
+    fuente: doc.data ? 'firebase' : 'supabase',
+    data: clienteData
+  }));
+}
+*/
 // Event listener para buscar al cliente
 buscarForm.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -168,39 +263,152 @@ document.getElementById('buscarPorNombreBtn').addEventListener('click', () => {
   buscarCliente('nombre', valor);
 });
 
-// Función para mostrar los datos del cliente seleccionado
-function mostrarDatosCliente(doc) {
-  datosClienteContainer.style.display = 'block';
-  const clienteData = doc.data();
+// Función para formatear la fecha de Supabase
+// Función mejorada para formatear fechas de Supabase
+function formatearFechaSupabase(fechaString) {
+  if (!fechaString) return 'N/A';
 
-  // Verificar que los elementos existan antes de usarlos
-  const mapeoElementos = {
-    clienteId: clienteData.clienteId,
-    clientePuntos: clienteData.puntos,
-    clienteNombre: clienteData.nombre,
-    clienteAlcaldia: clienteData.alcaldia,
-    clienteColonia: clienteData.colonia,
-    clienteNacimiento: clienteData.nacimiento,
-    clienteTelefono: clienteData.telefono,
-    clienteEmail: clienteData.email,
-    clienteUltimaFecha: clienteData.ultimaFechaIngreso,
-    clienteUltimosPuntos: clienteData.ultimosPuntos,
-    clienteUltimaFechaGastar: clienteData.ultimaFechaIngresoGastar,
-    clienteUltimosPuntosGastar: clienteData.ultimosPuntosGastar,
-    fechaRegistro: clienteData.fechaRegistro
-      ? clienteData.fechaRegistro.toDate()
-      : '',
-  };
+  try {
+    const fecha = new Date(fechaString);
 
-  // Actualizar los elementos del DOM si existen
-  for (const [id, value] of Object.entries(mapeoElementos)) {
-    const elemento = document.getElementById(id);
-    if (elemento) {
-      elemento.textContent = value || 'N/A'; // Manejar valores vacíos o nulos
+    if (isNaN(fecha.getTime())) {
+      console.warn('Fecha inválida:', fechaString);
+      return 'N/A';
     }
+
+    // Opciones de formato para fecha y hora
+    const opcionesFecha = {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    };
+
+    const opcionesHora = {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    };
+
+    const fechaFormateada = fecha.toLocaleDateString('es-MX', opcionesFecha);
+    const horaFormateada = fecha.toLocaleTimeString('es-MX', opcionesHora);
+
+    return `${fechaFormateada} ${horaFormateada}`;
+  } catch (error) {
+    console.error('Error formateando fecha:', error, 'Fecha original:', fechaString);
+    return 'N/A';
   }
 }
 
+// Función para mostrar los datos del cliente seleccionado
+// Función para mostrar los datos del cliente seleccionado
+function mostrarDatosCliente(doc) {
+  datosClienteContainer.style.display = 'block';
+
+  // Determinar la fuente real basada en la estructura del objeto
+  let fuente;
+  let clienteData;
+
+  if (doc._firestore) {
+    // Es un documento de Firebase directamente
+    fuente = 'firebase';
+    clienteData = doc.data();
+  } else if (doc.data && typeof doc.data === 'function') {
+    // Fue formateado para parecer Firebase (resultado de buscarEnSupabase)
+    fuente = 'supabase';
+    clienteData = doc.data();
+  } else {
+    // Es un objeto plano de Supabase
+    fuente = 'supabase';
+    clienteData = doc;
+  }
+
+  console.log("Fuente determinada:", fuente);
+  console.log("Datos del cliente:", clienteData);
+
+  // Obtener ID del cliente según la fuente
+  const idCliente = fuente === 'firebase' ?
+    (doc.id || clienteData.clienteId) :
+    (clienteData.cliente_id || clienteData.clienteId);
+
+  // Verificar consistencia de la fuente con el ID
+  const idNumerico = parseInt(idCliente);
+  if ((idNumerico >= 3000 && fuente === 'firebase') ||
+    (idNumerico < 3000 && fuente === 'supabase')) {
+    console.warn(`Inconsistencia: ID ${idCliente} no coincide con fuente ${fuente}`);
+    fuente = idNumerico >= 3000 ? 'supabase' : 'firebase';
+    console.log("Fuente corregida:", fuente);
+  }
+
+  // Función para formatear fechas según la fuente
+  const formatearFecha = (fecha, esFirebase = false) => {
+    if (!fecha) return 'N/A';
+
+    try {
+      if (esFirebase) {
+        return fecha.toDate ?
+          fecha.toDate().toLocaleString('es-MX') :
+          new Date(fecha).toLocaleString('es-MX');
+      }
+      return formatearFechaSupabase(fecha);
+    } catch (error) {
+      console.error('Error formateando fecha:', error);
+      return 'N/A';
+    }
+  };
+
+  // Mapeo de campos según la fuente
+  const mapeoElementos = {
+    clienteId: idCliente,
+    clientePuntos: fuente === 'firebase' ?
+      clienteData.puntos :
+      clienteData.puntos_actuales,
+    clienteNombre: clienteData.nombre,
+    clienteAlcaldia: clienteData.alcaldia,
+    clienteColonia: clienteData.colonia,
+    clienteNacimiento: clienteData.nacimiento ?
+      new Date(clienteData.nacimiento).toLocaleDateString('es-MX') :
+      'N/A',
+    clienteTelefono: clienteData.telefono,
+    clienteEmail: clienteData.email,
+    clienteUltimaFecha: formatearFecha(
+      fuente === 'firebase' ?
+        clienteData.ultimaFechaIngreso :
+        clienteData.ultima_actualizacion,
+      fuente === 'firebase'
+    ),
+    clienteUltimosPuntos: fuente === 'firebase' ?
+      clienteData.ultimosPuntos :
+      clienteData.ultimos_puntos,
+    clienteUltimaFechaGastar: formatearFecha(
+      fuente === 'firebase' ?
+        clienteData.ultimaFechaIngresoGastar :
+        clienteData.ultima_fecha_ingreso_gastar,
+      fuente === 'firebase'
+    ),
+    clienteUltimosPuntosGastar: fuente === 'firebase' ?
+      clienteData.ultimosPuntosGastar :
+      clienteData.ultimos_puntos_gastar,
+    fechaRegistro: formatearFecha(
+      clienteData.fechaRegistro,
+      fuente === 'firebase'
+    )
+  };
+
+  // Actualizar la UI
+  for (const [id, value] of Object.entries(mapeoElementos)) {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+      elemento.textContent = value || 'N/A';
+    }
+  }
+
+  // Guardar referencia al cliente
+  sessionStorage.setItem('clienteActual', JSON.stringify({
+    id: idCliente,
+    fuente: fuente,
+    data: clienteData
+  }));
+}
 // Funciones para ocultar los contenedores
 function ocultarContenedores() {
   const contenedores = [
@@ -274,30 +482,101 @@ const btnCalcularPuntos = document.getElementById('calcularPuntosBtn');
 // Agregar eventos a los botones
 btnAgregarPuntos.addEventListener('click', agregarPuntos);
 btnCalcularPuntos.addEventListener('click', async () => {
-  // Llamar a la función calcularPuntos() y pasar clientesRef como argumento
-  const puntosActualizados = await calcularPuntos(clientesRef);
-  if (puntosActualizados) {
+  const totalCompra = parseFloat(document.getElementById('puntos').value);
+
+  if (isNaN(totalCompra)) {
+    showError('puntos', 'Número no válido.', 'mensajeErrorPuntos', 'Ingresa un valor numérico válido.');
+    return;
+  }
+
+  try {
+    // Calcular puntos a agregar (1 punto por cada $10)
+    const puntosAAgregar = Math.floor(totalCompra / 10);
+
+    // Obtener cliente actual desde sessionStorage
+    const clienteActual = JSON.parse(sessionStorage.getItem('clienteActual'));
+    if (!clienteActual) {
+      throw new Error("No se encontró información del cliente actual");
+    }
+
+    // Actualizar puntos según la fuente (Firebase o Supabase)
+    const nuevosPuntos = await actualizarPuntosCliente(
+      clienteActual.id,
+      clienteActual.fuente,
+      puntosAAgregar
+    );
+
+    // Actualizar UI
     document.getElementById('datosPuntosCliente').style.display = 'block';
-    //limpiarLabels();
-    hideError('puntos', 'mensajeErrorPuntos')
+    hideError('puntos', 'mensajeErrorPuntos');
     document.getElementById('puntos').style.borderBlockColor = "green";
 
-    document.getElementById('totalCompra').textContent = "$" + document.getElementById('puntos').value;
-    document.getElementById('puntosAnteriores').textContent = puntosActuales;
-    document.getElementById('puntosAgregados').textContent = nuevosPuntos;
-    document.getElementById('clientePuntos').textContent = totalPuntos;
+    document.getElementById('totalCompra').textContent = "$" + totalCompra.toFixed(2);
+    document.getElementById('puntosAnteriores').textContent = clienteActual.data.puntos || clienteActual.data.puntos_actuales;
+    document.getElementById('puntosAgregados').textContent = puntosAAgregar;
+    document.getElementById('clientePuntos').textContent = nuevosPuntos;
 
-    //Muestra los puntos con los que Finaliza
+    // Actualizar puntos finales
     const puntosFinales = document.getElementById('puntosFinales');
     puntosFinales.style.color = "green";
-    puntosFinales.textContent = ` ${totalPuntos} `;
-    document.getElementById('puntosAgregar').style.color = "green"
-    document.getElementById('puntosAgregar').textContent = ` ${totalPuntos} `;
-  } else {
-    // Valor inválido, muestra un mensaje de error
-    showError('puntos', 'Número no valido.', 'mensajeErrorPuntos', 'Ingresa un valor numérico válido.')
+    puntosFinales.textContent = ` ${nuevosPuntos} `;
+    document.getElementById('puntosAgregar').style.color = "green";
+    document.getElementById('puntosAgregar').textContent = ` ${nuevosPuntos} `;
+
+    // Actualizar datos en sessionStorage
+    clienteActual.data.puntos = nuevosPuntos;
+    clienteActual.data.puntos_actuales = nuevosPuntos;
+    sessionStorage.setItem('clienteActual', JSON.stringify(clienteActual));
+
+    showmessage("Puntos actualizados correctamente", "success");
+  } catch (error) {
+    console.error("Error al actualizar puntos:", error);
+    showError('puntos', 'Error al actualizar puntos.', 'mensajeErrorPuntos', "Error al actualizar puntos." || 'Ocurrió un error al actualizar los puntos');
   }
 });
+
+async function actualizarPuntosCliente(clienteId, fuente, puntosAAgregar) {
+  const fechaActual = new Date().toISOString();
+  console.log("Actualizando puntos para el cliente:", clienteId, "Fuente:", fuente, "Puntos a agregar:", puntosAAgregar);
+  try {
+    if (fuente === 'firebase') {
+      // Actualizar en Firebase
+      const clienteRef = clientesRef.doc(clienteId);
+      const doc = await clienteRef.get();
+
+      if (!doc.exists) {
+        throw new Error("Cliente no encontrado en Firebase");
+      }
+
+      const puntosActuales = doc.data().puntos || 0;
+      const nuevosPuntos = puntosActuales + puntosAAgregar;
+
+      await clienteRef.update({
+        puntos: nuevosPuntos,
+        ultimaFechaIngreso: firebase.firestore.Timestamp.now(),
+        ultimosPuntos: puntosAAgregar
+      });
+
+      return nuevosPuntos;
+    } else {
+      // Actualizar en Supabase
+      // Usar la función RPC para actualizar puntos e historial
+      const { data: nuevosPuntos, error } = await supabase
+        .rpc('actualizar_puntos', {
+          p_cliente_id: clienteId,
+          p_puntos_cambio: puntosAAgregar,
+          p_tipo_operacion: 'acumulacion',
+        });
+
+      if (error) throw error;
+
+      return nuevosPuntos;
+    }
+  } catch (error) {
+    console.error("Error en actualizarPuntosCliente:", error);
+    throw error; // Re-lanzar el error para manejarlo en el llamador
+  }
+}
 
 function agregarPuntos() {
   ocultarContenedores(); //Oculta contenedores y botones
@@ -328,7 +607,6 @@ btnGastarPuntos.addEventListener('click', () => {
   mostrarBotones();
 
   limpiarLabels();
-
 
   // Muestra el contenedor para gastar puntos
   const gastarContainer = document.getElementById('gastar-container');
@@ -435,67 +713,98 @@ async function eliminarCliente() {
 }
 
 // Función para gastar los puntos
-function gastarPuntos(clientesRef, puntosGastarValue) {
+async function gastarPuntos(puntosGastados) {
   const puntosGastarInput = document.getElementById('puntosGastar');
-  const clienteId = document.getElementById('clienteId').textContent;
-  const puntosCliente = parseInt(document.getElementById('clientePuntos').textContent);
-  const puntosGastados = parseInt(puntosGastarValue);
+  const clienteActual = JSON.parse(sessionStorage.getItem('clienteActual'));
+
+  if (!clienteActual) {
+    showError('puntosGastar', 'Error interno', 'mensajeErrorGastar', 'Cliente no encontrado.');
+    return;
+  }
+
+  const puntosCliente = clienteActual.data.puntos || clienteActual.data.puntos_actuales;
 
   limpiarLabels();
 
-
-
-  // Verificar que los puntos a gastar sean un valor numérico mayor que 0
+  // Validaciones
   if (isNaN(puntosGastados) || puntosGastados <= 0) {
-    showError('puntusGastar', 'Número no valido.', 'mensajeErrorGastar', 'Ingresa un valor numérico válido para los puntos a gastar.')
-    //  mostrarMensajeError('Ingresa un valor numérico válido para los puntos a gastar.', 'puntosGastar', 'datosGastarCliente', 'mensajeErrorGastar', 'mensajeErrorGastarContainer', 'Número no valido.');
-    return 0;
+    showError('puntosGastar', 'Número no válido', 'mensajeErrorGastar', 'Ingresa un número mayor que cero.');
+    return;
   }
 
-  // Verificar que los puntos a gastar no excedan los 100 puntos por ticket
   if (puntosGastados > 100) {
-    showError('puntusGastar', 'No puedes gastar más de 100 puntos por ticket.', 'mensajeErrorGastar', 'Operación no valida.')
-    //  mostrarMensajeError('No puedes gastar más de 100 puntos por ticket.', 'puntosGastar', 'datosGastarCliente', 'mensajeErrorGastar', 'mensajeErrorGastarContainer', 'Operación no valida.');
-    return 0;
+    showError('puntosGastar', 'Máximo 100 puntos por ticket', 'mensajeErrorGastar', 'Reduce los puntos a gastar.');
+    return;
   }
 
-  // Verificar que el cliente tenga suficientes puntos para realizar la transacción
-  if (puntosGastados <= puntosCliente) {
-    const nuevosPuntos = puntosCliente - puntosGastados;
-    const fechaActualGastar = new Date().toLocaleDateString();
+  if (puntosGastados > puntosCliente) {
+    showError('puntosGastar', 'Puntos insuficientes', 'mensajeErrorGastar', 'No tienes puntos suficientes.');
+    return;
+  }
+
+  try {
+    const nuevosPuntos = await gastarPuntosCliente(clienteActual.id, clienteActual.fuente, puntosGastados);
+
     document.getElementById('datosGastarCliente').style.display = 'block';
-    // Actualizar el campo "puntos" en la base de datos de Firebase
-    clientesRef.doc(clienteId).update({
-      puntos: nuevosPuntos,
-      ultimaFechaIngresoGastar: fechaActualGastar,
-      ultimosPuntosGastar: puntosGastados
-    }).then(() => {
-      // Actualizar la etiqueta p de puntos con los nuevos puntos
-      document.getElementById('clientePuntos').textContent = nuevosPuntos;
-      document.getElementById('PuntosGastar').textContent = nuevosPuntos;
-      document.getElementById('puntosAnt').textContent = puntosCliente;
+    document.getElementById('clientePuntos').textContent = nuevosPuntos;
+    document.getElementById('PuntosGastar').textContent = nuevosPuntos;
+    document.getElementById('puntosAnt').textContent = puntosCliente;
+    document.getElementById('puntosGastados').textContent = ` ${puntosGastados}`;
+    document.getElementById('totalSobrante').textContent = ` ${nuevosPuntos}`;
 
-      // Mostrar los puntos a gastar y el total restante en el elemento <p>
-      const puntosGast = document.getElementById('puntosGastados');
-      puntosGast.style.color = 'red';
-      puntosGast.textContent = ` ${puntosGastados}`;
+    // Marcar input como válido
+    puntosGastarInput.classList.add('is-valid');
+    puntosGastarInput.value = '';
 
-      const totalSobrante = document.getElementById('totalSobrante');
-      totalSobrante.style.color = 'green';
-      totalSobrante.textContent = ` ${nuevosPuntos} `;
+    // Actualizar en sessionStorage
+    clienteActual.data.puntos = nuevosPuntos;
+    clienteActual.data.puntos_actuales = nuevosPuntos;
+    sessionStorage.setItem('clienteActual', JSON.stringify(clienteActual));
+  } catch (error) {
+    showError('puntosGastar', 'Ocurrió un error al procesar la solicitud.', 'mensajeErrorGastar', 'Error al gastar puntos.');
+  }
+}
 
-      // Limpiar el campo de puntos a gastar y mostrar bordes en verde
-      puntosGastarInput.value = '';
-      puntosGastarInput.classList.add('is-valid');
+async function gastarPuntosCliente(clienteId, fuente, puntosAGastar) {
+  try {
+    if (fuente === 'firebase') {
+      const clienteRef = clientesRef.doc(clienteId);
+      const doc = await clienteRef.get();
 
-    }).catch((error) => {
-      console.error('Error al actualizar los puntos en la base de datos:', error);
-      showError('puntusGastar', 'Error al gastar puntos.', 'mensajeErrorGastar', 'Error al gastar los puntos. Por favor, inténtalo de nuevo.')
-      //  mostrarMensajeError('Error al gastar los puntos. Por favor, inténtalo de nuevo.', 'puntosGastar', 'datosGastarCliente', 'mensajeErrorGastar', 'mensajeErrorGastarContainer', 'Error al gastar puntos.');
-    });
-  } else {
-    showError('puntosGastar', 'Ingresa un número valido.', 'mensajeErrorGastar', 'No tienes puntos suficientes para realizar esta transacción.')
-    //  mostrarMensajeError('No tienes puntos suficientes para realizar esta transacción.', 'puntosGastar', 'datosGastarCliente', 'mensajeErrorGastar', 'mensajeErrorGastarContainer', 'Ingresa un número valido.');
+      if (!doc.exists) {
+        throw new Error("Cliente no encontrado en Firebase");
+      }
+
+      const data = doc.data();
+      const puntosActuales = data.puntos || 0;
+      const nuevosPuntos = puntosActuales - puntosAGastar;
+
+      if (nuevosPuntos < 0) throw new Error("No tiene suficientes puntos");
+
+      await clienteRef.update({
+        puntos: nuevosPuntos,
+        ultimaFechaIngresoGastar: firebase.firestore.Timestamp.now(),
+        ultimosPuntosGastar: puntosAGastar
+      });
+
+      return nuevosPuntos;
+
+    } else {
+      // Llama a función RPC en Supabase
+      const { data: nuevosPuntos, error } = await supabase
+        .rpc('actualizar_puntos', {
+          p_cliente_id: clienteId,
+          p_puntos_cambio: puntosAGastar,
+          p_tipo_operacion: 'canje'
+        });
+
+
+      if (error) throw error;
+      return nuevosPuntos;
+    }
+  } catch (error) {
+    console.error("Error al gastar puntos:", error);
+    throw error;
   }
 }
 
@@ -525,7 +834,7 @@ calcularGastoPuntosBtn.addEventListener('click', () => {
   const puntosGastarInput = document.getElementById('puntosGastar');
   const puntosGastarValue = parseInt(puntosGastarInput.value);
 
-  gastarPuntos(clientesRef, puntosGastarValue);
+  gastarPuntos(puntosGastarValue);
 });
 
 
@@ -714,49 +1023,50 @@ function obtenerDescripcionCampo(campo) {
 }
 
 // Función para mostrar una lista de clientes encontrados
-function mostrarListaClientes(querySnapshot) {
-  const contenedor = document.getElementById('clientesResultados'); // Contenedor para los resultados
-  contenedor.innerHTML = ''; // Limpiar contenido previo
+function mostrarListaClientes(resultados) {
+  const contenedor = document.getElementById('clientesResultados');
+  contenedor.innerHTML = '';
 
-  querySnapshot.forEach((doc) => {
-    const clienteData = doc.data();
-
-    // Crear un elemento para cada cliente
+  resultados.forEach((clienteData) => {
     const clienteElemento = document.createElement('div');
-    clienteElemento.classList.add('cliente-item'); // Clase opcional para estilos
-    clienteElemento.style.border = '1px solid #ccc';
-    clienteElemento.style.margin = '10px';
-    clienteElemento.style.padding = '10px';
+    clienteElemento.classList.add('cliente-item');
+
+    // Determinar si es de Firebase o Supabase
+    const esFirebase = clienteData._firestore !== undefined;
+    const idCliente = esFirebase ? clienteData.id : clienteData.cliente_id;
+    const fuente = esFirebase ? 'firebase' : 'supabase';
 
     clienteElemento.innerHTML = `
-    <p><strong>Nombre:</strong> ${clienteData.nombre || 'No disponible'}</p>
-    <p><strong>ID:</strong> ${clienteData.clienteId || 'No disponible'}</p>
-    <p><strong>Teléfono:</strong> ${clienteData.telefono || 'No disponible'}</p>
-    <p><strong>Correo:</strong> ${clienteData.email || 'No disponible'}</p>
-    <p><strong>Fecha Registro:</strong> ${clienteData.fechaRegistro
-        ? clienteData.fechaRegistro.toDate().toLocaleDateString('es-MX', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        })
-        : 'No disponible'
-      }</p>
-    <button class="seleccionar-btn btn btn-primary" data-id="${doc.id}">Seleccionar</button>
-  `;
-
+      <p><strong>Nombre:</strong> ${clienteData.nombre || 'No disponible'}</p>
+      <p><strong>ID:</strong> ${idCliente || 'No disponible'}</p>
+      <p><strong>Teléfono:</strong> ${clienteData.telefono || 'No disponible'}</p>
+      <p><strong>Correo:</strong> ${clienteData.email || 'No disponible'}</p>
+      <p><strong>Fuente:</strong> ${fuente}</p>
+      <button class="seleccionar-btn btn btn-primary" data-id="${idCliente}" data-fuente="${fuente}">Seleccionar</button>
+    `;
 
     contenedor.appendChild(clienteElemento);
   });
 
-  // Mostrar el contenedor del listado
   document.getElementById('listaClientes').style.display = 'block';
 
-  // Agregar eventos a los botones "Seleccionar"
+  // Agregar eventos a los botones
   document.querySelectorAll('.seleccionar-btn').forEach((boton) => {
     boton.addEventListener('click', (e) => {
-      ocultarContenedores();
-      const clienteId = e.target.getAttribute('data-id'); // Obtener el ID del documento
-      seleccionarCliente(clienteId); // Pasar el ID a la función de selección
+      const clienteId = e.target.getAttribute('data-id');
+      const fuente = e.target.getAttribute('data-fuente');
+
+      // Encontrar el cliente seleccionado
+      const clienteSeleccionado = resultados.find(c =>
+        (fuente === 'firebase' && c.id === clienteId) ||
+        (fuente === 'supabase' && c.cliente_id === clienteId)
+      );
+
+      if (clienteSeleccionado) {
+        ocultarContenedores();
+        mostrarDatosCliente(clienteSeleccionado);
+        mostrarBotones();
+      }
     });
   });
 }

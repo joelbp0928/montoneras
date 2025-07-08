@@ -1,13 +1,14 @@
 // Importar las funciones y objetos necesarios
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-auth.js"
-import { getDocs, collection } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js"
+import { getDocs, collection, query, where } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js"
 import { logincheck } from './js/logincheck.js'
 import { auth, db } from "./js/firebase.js"
-import { setupPosts } from "./js/postPuntos.js"
+import { setupPosts, checkSupabaseSession } from "./js/postPuntos.js"
 import { showmessage } from "./js/showmessage.js"
 import { loadConfigImages, listenForConfigChanges } from "./js/config.js";
 
 // Importar los módulos necesarios para las funcionalidades específicas
+import './js/config-supabase.js'
 import './js/registro.js'
 import './js/iniciar_sesion.js'
 import './js/loginTelefono.js'
@@ -17,51 +18,37 @@ import './js/menu.js'
 // 📌 Llamar la función para cargar las imágenes del logo y background
 document.addEventListener("DOMContentLoaded", () => {
     loadConfigImages();
+
     listenForConfigChanges(); // Para actualizar en tiempo real si cambia en Firestore
-});
+    // Manejo de autenticación
+    onAuthStateChanged(auth, async (user) => {
+        logincheck(user);
+        if (user) {
+            try {
+                // 🔍 Buscar en Firebase
+                const userQuery = await getDocs(query(collection(db, 'clientes'), where('clienteUid', '==', user.uid)));
 
-// Manejo de autenticación
-onAuthStateChanged(auth, async (user) => {
-    // Verificar si el usuario está autenticado (logueado)
-    console.log("Estado de autenticación cambiado:", user);
-    if (user) {
-        logincheck(user); // Realizar el checkeo del usuario logueado
-        try {
-            // Obtener el correo electrónico y el número de teléfono del usuario
-            const email = user.email;
-            const telefono = user.phoneNumber;
-
-            // Obtener la colección de clientes desde Firestore
-            const querySnapshot = await getDocs(collection(db, 'clientes'));
-
-            // Configurar las publicaciones en la interfaz usando los datos obtenidos
-            setupPosts(querySnapshot.docs, email, telefono);
-            //    console.log("Usuario autenticado:", user); //muestra datos del usuario logeado
-        } catch (error) {
-            // Mostrar mensaje de error en caso de que ocurra algún problema
-            console.log("Error al acceder a Firestore:", error);
-            showmessage("Error al acceder.", "error");
-        }
-    } else {
-        // Si no hay sesión, intenta cargar desde localStorage
-        const clienteId = localStorage.getItem("clienteId");
-        const clienteNombre = localStorage.getItem("clienteNombre");
-        const clienteEmail = localStorage.getItem("clienteEmail");
-
-        if (clienteId && clienteNombre) {
-            // Simular estructura de doc para setupPosts
-            const fakeDoc = {
-                data: () => ({
-                    clienteId,
-                    nombre: clienteNombre,
-                    email: clienteEmail,
-                    puntos: "?" // Si quieres dejarlo vacío o estimado
-                })
-            };
-            setupPosts([fakeDoc], clienteEmail, null);
+                if (!userQuery.empty) {
+                    const userData = userQuery.docs[0].data();
+                    setupPosts([{ data: () => userData }], user.email, user.phoneNumber || userData.telefono);
+                } else {
+                    // 🔁 Buscar en Supabase como fallback
+                    console.log("Usuario no encontrado en Firebase, intentando en Supabase...");
+                    await checkSupabaseSession(); // Usa tu función de postPuntos.js
+                }
+            } catch (error) {
+                console.error("Error accediendo a los datos:", error);
+                setupPosts([]);
+            }
         } else {
-            setupPosts([]);
+            console.log("Usuario no autenticado");
+            // ✅ Firebase no detecta sesión → intentamos en Supabase
+            await checkSupabaseSession();
         }
-        logincheck(null);
-    }
+    });
+
 });
+
+
+
+

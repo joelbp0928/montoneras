@@ -1,37 +1,24 @@
-// Importa los módulos necesarios
-import { createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-auth.js";
-import { collection, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js";
-//import { initializeApp } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-app.js";
-import { auth, db, firebaseConfig } from "./firebase.js";
+import { supabase } from './config-supabase.js';
 import { showmessage } from './showmessage.js';
-//import { setupPosts } from './postPuntos.js';
 import { showError, hideError } from "./manageError.js";
-import { getLastClientId } from "./ultimoId.js";
-import { isValidDate } from './validarFecha.js'
-
-// Inicializa la aplicación de Firebase
-firebase.initializeApp(firebaseConfig);
-
-// Obtén una referencia a la colección de clientes en Firestore
-const clientesRef = firebase.firestore().collection('clientes');
+import { isValidDate } from './validarFecha.js';
 
 // Obtiene una referencia al formulario de registro
 const signupForm = document.getElementById("signup-form");
 
-// Agrega un controlador de eventos para manejar el envío del formulario
 // Controlador del evento submit del formulario de registro
 signupForm.addEventListener("submit", async (e) => {
-  e.preventDefault(); // Previene el envío del formulario por defecto
-
+  e.preventDefault();
   const registroButton = document.getElementById('registroButton');
-  registroButton.disabled = true; // Deshabilita el botón para evitar múltiples envíos
+  registroButton.disabled = true;
 
-  showmessage("Registrando. Espere...", "warning"); // Mensaje inicial de registro en proceso
+  showmessage("Registrando. Espere...", "warning");
 
-  // Limpia errores previos en todos los campos
+  // Limpia errores previos
   validacionEliminarError(['nombre', 'telefonoRegistro', 'alcaldia', 'colonia', 'nacimiento', 'email', 'password', 'confirmPassword']);
   hideError("nacimiento", "mensajeErrorNacimiento");
-  // Obtiene los valores ingresados en el formulario
+
+  // Obtiene los valores del formulario
   const telefono = document.getElementById("telefonoRegistro").value;
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -42,111 +29,125 @@ signupForm.addEventListener("submit", async (e) => {
   const nacimiento = document.getElementById('nacimiento').value;
 
   try {
-    // Valida el correo electrónico
+    // Validaciones (igual que antes)
     if (!(await validarYProcesarEmail(email))) {
       registroButton.disabled = false;
       return;
     }
 
-    // Valida el número de teléfono
     if (!(await validarYProcesarTelefono(telefono))) {
       registroButton.disabled = false;
       return;
     }
 
-    // Valida las contraseñas
     if (!validaryProcesarPassword(password, confirmPassword)) {
       registroButton.disabled = false;
       return;
     }
 
-    // Valida la fecha de nacimiento
     if (!isValidDate(nacimiento)) {
       showError("nacimiento", "Fecha inválida", "mensajeErrorNacimiento", "Debe ser mayor de 5 años.");
       registroButton.disabled = false;
       return;
     }
+
     hideError("nacimiento", "mensajeErrorNacimiento");
-    validacionAgregarValid(['nacimiento'])
-    // Valida campos obligatorios como nombre, alcaldía y colonia
+    validacionAgregarValid(['nacimiento']);
+
     if (!nombre || !alcaldia || !colonia) {
       showError("nombre", "Campo requerido", "mensajeErrorNombre", "El nombre es obligatorio.");
       registroButton.disabled = false;
       return;
     }
-    validacionAgregarValid(['nombre', 'alcaldia','colonia'])
 
-    // Obtiene el último cliente ID y genera uno nuevo
-    const ultimoId = await getLastClientId(clientesRef);
-    const nuevoId = ultimoId + 1;
+    validacionAgregarValid(['nombre', 'alcaldia', 'colonia']);
 
-    // Crea un objeto cliente con los datos ingresados
-    const cliente = {
-      clienteId: nuevoId.toString(),
-      nombre,
-      telefono,
+    // PASO 1: Crear usuario en Auth de Supabase
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
-      alcaldia,
-      colonia,
-      nacimiento,
-      puntos: 5, // Asigna 5 puntos como bienvenida
-      fechaRegistro: firebase.firestore.Timestamp.now(), // Fecha de registro actual
-      ultimaFechaIngreso: "",
-      ultimosPuntos: "",
-      ultimaFechaIngresoGastar: "",
-      ultimosPuntosGastar: "",
-      nombreNormalizado: nombre.toLowerCase()
-    };
+      password,
+    });
 
-    // Guarda el cliente en Firestore
-    const clienteDocRef = clientesRef.doc(cliente.clienteId);
-    await clienteDocRef.set(cliente);
+    if (authError) {
+      throw authError;
+    }
 
-    try {
-      // Crea el usuario en Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const clienteUid = userCredential.user.uid; // Obtiene el UID del usuario creado
+    // Obtener el ID del cliente (auto-incremental desde 3001)
+    const { data: idData, error: idError } = await supabase
+      .rpc('get_next_client_id');
 
-      // Actualiza el cliente en Firestore con el UID
-      await clienteDocRef.update({ clienteUid });
+    if (idError) throw idError;
 
-      validacionAgregarValid(['nombre', 'telefono','alcaldia','colonia', 'nacimiento', 'email', 'password', 'confirmPassword'],)
+    const clienteId = idData;
+    const clienteUid = authData.user.id; // Reemplazar con authData.user.id si se usa autenticación
+    // PASO 2: Insertar datos del cliente en la tabla
+    const { data: clienteData, error: clienteError } = await supabase
+      .from('clientes')
+      .insert([{
+        cliente_id: clienteId,
+        cliente_uid: clienteUid,
+        nombre,
+        nombre_normalizado: nombre.toLowerCase(),
+        email,
+        telefono,
+        nacimiento: nacimiento,
+        alcaldia,
+        colonia,
+        puntos_actuales: 3, // Puntos de bienvenida
+        fechaRegistro: new Date().toISOString()
+      }])
+      .select();
 
-      // Si todo fue exitoso, limpia el formulario y muestra un mensaje de éxito
-      resetFormFields();
-      registroButton.disabled = false;
+    if (clienteError) throw clienteError;
 
-      const signupModal = document.querySelector('#signupModal');
-      const modal = bootstrap.Modal.getInstance(signupModal);
-      modal.hide();
+    // Éxito - limpiar formulario
+    resetFormFields();
+    registroButton.disabled = false;
 
-      showmessage("Registro exitoso \n Te regalamos 5 puntos.", "success");
-    } catch (authError) {
-      // Si falla la autenticación, elimina el cliente en Firestore
-      await deleteDoc(clienteDocRef);
-      console.error("Error al crear el usuario en Authentication. Registro revertido.", authError);
-      showmessage("Error al registrar el cliente. Por favor, inténtalo de nuevo.", "error");
+    const signupModal = document.querySelector('#signupModal');
+    const modal = bootstrap.Modal.getInstance(signupModal);
+    modal.hide();
+
+    showmessage("Registro exitoso \n Te regalamos 3 puntos.", "success");
+
+    // ✅ Iniciar sesión automáticamente tras registrar
+    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (loginError) {
+      console.error("Error al iniciar sesión después del registro:", loginError);
+    } else {
+      import('./postPuntos.js').then(({ checkSupabaseSession }) => {
+        setTimeout(() => {
+          checkSupabaseSession();
+        }, 400);
+      });
+
     }
   } catch (error) {
-    // Manejo de errores generales durante el registro
     console.error("Error durante el registro: ", error);
-    showmessage("Ocurrió un error durante el registro. Intenta más tarde.", "error");
-  } finally {
-    registroButton.disabled = false; // Habilita el botón de registro al final del flujo
+    showmessage(error.message || "Ocurrió un error durante el registro. Intenta más tarde.", "error");
+    registroButton.disabled = false;
   }
 });
 
-// Valida y procesa el correo electrónico
+// Funciones de validación adaptadas para Supabase
 async function validarYProcesarEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Expresión regular para validar formato de correo
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     showError("email", "Correo electrónico inválido", "mensajeErrorEmail", "Formato del correo no válido.");
     return false;
   }
 
   try {
-    const methods = await fetchSignInMethodsForEmail(auth, email);
-    if (methods.length > 0) {
+    const { data, error } = await supabase
+      .from('clientes')
+      .select('email')
+      .eq('email', email);
+
+    if (data && data.length > 0) {
       showError("email", "Correo ya registrado", "mensajeErrorEmail", "Este correo ya está registrado.");
       return false;
     }
@@ -157,21 +158,25 @@ async function validarYProcesarEmail(email) {
   }
 
   hideError("email", "mensajeErrorEmail");
-  validacionAgregarValid(['email'])
+  validacionAgregarValid(['email']);
   return true;
 }
 
-// Valida y procesa el número de teléfono
 async function validarYProcesarTelefono(telefono) {
   hideError("telefonoRegistro", "mensajeErrorTelefono");
+
   if (!validarFormatoTelefono(telefono)) {
     showError("telefonoRegistro", "Número no válido", "mensajeErrorTelefono", "El número debe tener 10 dígitos.");
     return false;
   }
 
   try {
-    const snapshot = await getDocs(query(collection(db, "clientes"), where("telefono", "==", telefono)));
-    if (!snapshot.empty) {
+    const { data, error } = await supabase
+      .from('clientes')
+      .select('telefono')
+      .eq('telefono', telefono);
+
+    if (data && data.length > 0) {
       showError("telefonoRegistro", "Número ya registrado", "mensajeErrorTelefono", "Este número ya está asociado a otra cuenta.");
       return false;
     }
@@ -182,7 +187,7 @@ async function validarYProcesarTelefono(telefono) {
   }
 
   hideError("telefonoRegistro", "mensajeErrorTelefono");
-  validacionAgregarValid(['telefonoRegistro'])
+  validacionAgregarValid(['telefonoRegistro']);
   return true;
 }
 
@@ -230,3 +235,19 @@ function validacionEliminarError(ids) {
 function validacionAgregarValid(ids) {
   ids.forEach(id => document.getElementById(id).classList.add('is-valid'));
 }
+
+document.getElementById('signupModal').addEventListener('hidden.bs.modal', function () {
+  // Limpiar completamente el modal
+  const modal = this;
+  modal.style.display = 'none';
+
+  // Eliminar todos los backdrops
+  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+
+  // Restaurar el body
+  document.body.classList.remove('modal-open');
+  document.body.style.paddingRight = '';
+
+  // Forzar redibujado
+  void modal.offsetHeight;
+});
