@@ -1,5 +1,5 @@
 import { showmessage } from '../showmessage.js';
-import { isValidDate } from '../validarFecha.js'
+import { isValidDate, convertirFechaParaInput, formatearFechaNacimiento } from '../validarFecha.js'
 import { calcularPuntos, totalPuntos, nuevosPuntos, puntosActuales } from './agregarPuntos.js';
 import { showError, hideError, validacionAgregarValid } from '../manageError.js';
 import { auth, db, firebaseConfig } from '../firebase.js';
@@ -130,49 +130,6 @@ function mostrarErrorNoEncontrado(campo, valor) {
   );
 }
 
-// Modificar la función mostrarDatosCliente para manejar ambos formatos
-/*function mostrarDatosCliente(doc) {
-  datosClienteContainer.style.display = 'block';
-  
-  // Obtener datos tanto para Firebase como Supabase
-  const clienteData = doc.data ? doc.data() : doc;
-  const fechaRegistro = clienteData.fechaRegistro 
-    ? (clienteData.fechaRegistro.toDate ? clienteData.fechaRegistro.toDate() : new Date(clienteData.fechaRegistro))
-    : 'N/A';
-
-  // Mapeo de datos
-  const mapeoElementos = {
-    clienteId: clienteData.clienteId || clienteData.cliente_id,
-    clientePuntos: clienteData.puntos || clienteData.puntos_actuales,
-    clienteNombre: clienteData.nombre,
-    clienteAlcaldia: clienteData.alcaldia,
-    clienteColonia: clienteData.colonia,
-    clienteNacimiento: clienteData.nacimiento,
-    clienteTelefono: clienteData.telefono,
-    clienteEmail: clienteData.email,
-    clienteUltimaFecha: clienteData.ultimaFechaIngreso,
-    clienteUltimosPuntos: clienteData.ultimosPuntos,
-    clienteUltimaFechaGastar: clienteData.ultimaFechaIngresoGastar,
-    clienteUltimosPuntosGastar: clienteData.ultimosPuntosGastar,
-    fechaRegistro: fechaRegistro
-  };
-
-  // Actualizar la UI
-  for (const [id, value] of Object.entries(mapeoElementos)) {
-    const elemento = document.getElementById(id);
-    if (elemento) {
-      elemento.textContent = value || 'N/A';
-    }
-  }
-  
-  // Guardar referencia al cliente para operaciones posteriores
-  sessionStorage.setItem('clienteActual', JSON.stringify({
-    id: doc.id,
-    fuente: doc.data ? 'firebase' : 'supabase',
-    data: clienteData
-  }));
-}
-*/
 // Event listener para buscar al cliente
 buscarForm.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -182,8 +139,8 @@ buscarForm.addEventListener("submit", (e) => {
   hideError('buscarClienteInput', 'mensajeErrorBuscar')
 
   if (clienteId === '') {
-    console.log("no hay nada en id")
-    showError('buscarClienteInput', 'Error ingrese un valor', 'mensajeErrorBuscar', 'Busqueda vacia, ingrese un valor a buscar.')
+    console.error('El campo de búsqueda está vacío.');
+    showError('buscarClienteInput', 'ingrese un valor', 'mensajeErrorBuscar', 'Busqueda vacia, ingrese un valor a buscar.');
     return;
   }
   buscarCliente('clienteId', clienteId);
@@ -264,7 +221,6 @@ document.getElementById('buscarPorNombreBtn').addEventListener('click', () => {
 });
 
 // Función para formatear la fecha de Supabase
-// Función mejorada para formatear fechas de Supabase
 function formatearFechaSupabase(fechaString) {
   if (!fechaString) return 'N/A';
 
@@ -300,7 +256,6 @@ function formatearFechaSupabase(fechaString) {
 }
 
 // Función para mostrar los datos del cliente seleccionado
-// Función para mostrar los datos del cliente seleccionado
 function mostrarDatosCliente(doc) {
   datosClienteContainer.style.display = 'block';
 
@@ -321,9 +276,6 @@ function mostrarDatosCliente(doc) {
     fuente = 'supabase';
     clienteData = doc;
   }
-
-  console.log("Fuente determinada:", fuente);
-  console.log("Datos del cliente:", clienteData);
 
   // Obtener ID del cliente según la fuente
   const idCliente = fuente === 'firebase' ?
@@ -365,9 +317,7 @@ function mostrarDatosCliente(doc) {
     clienteNombre: clienteData.nombre,
     clienteAlcaldia: clienteData.alcaldia,
     clienteColonia: clienteData.colonia,
-    clienteNacimiento: clienteData.nacimiento ?
-      new Date(clienteData.nacimiento).toLocaleDateString('es-MX') :
-      'N/A',
+    clienteNacimiento: formatearFechaNacimiento(clienteData.nacimiento),
     clienteTelefono: clienteData.telefono,
     clienteEmail: clienteData.email,
     clienteUltimaFecha: formatearFecha(
@@ -640,22 +590,17 @@ actualizarDatosClienteBtn.addEventListener('click', () => {
   let clienteTelefono = document.getElementById('clienteTelefono').textContent.trim();
   const clienteEmail = document.getElementById('clienteEmail').textContent.trim();
 
-  // Eliminar el prefijo +52 del número de teléfono si existe
-  if (clienteTelefono.startsWith('+52')) {
-    clienteTelefono = clienteTelefono.substring(3); // Remueve los primeros 3 caracteres
-  }
-
   // Asignar los valores a los inputs del formulario
   document.getElementById('inputClienteId').value = clienteId || "";
   document.getElementById('inputClienteNombre').value = clienteNombre || "";
   document.getElementById('inputClienteAlcaldia').value = clienteAlcaldia || "";
   document.getElementById('inputClienteColonia').value = clienteColonia || "";
-  document.getElementById('inputClienteNacimiento').value = clienteNacimiento || "";
+  document.getElementById('inputClienteNacimiento').value = convertirFechaParaInput(clienteNacimiento) || "";
   document.getElementById('inputClienteTelefono').value = clienteTelefono || "";
   document.getElementById('inputClienteEmail').value = clienteEmail || "";
 });
 
-
+// Función para actualizar los datos del cliente
 async function eliminarCliente() {
   const clienteId = document.getElementById('clienteId').textContent;
 
@@ -854,38 +799,33 @@ botonActualizar.addEventListener('click', async () => {
   let errores = false;
 
   if (!nombre) {
-    showError('inputClienteNombre', 'Error', 'mensajeActualizar', 'El nombre es obligatorio.');
+    showError('inputClienteNombre', 'Error nombre', 'mensajeActualizar', 'El nombre es obligatorio.');
     errores = true;
   }
   if (!alcaldia) {
-    showError('inputClienteAlcaldia', 'Error', 'mensajeActualizar', 'La alcaldía es obligatoria.');
+    showError('inputClienteAlcaldia', 'Error alcaldia', 'mensajeActualizar', 'La alcaldía es obligatoria.');
     errores = true;
   }
   if (!colonia) {
-    showError('inputClienteColonia', 'Error', 'mensajeActualizar', 'La colonia es obligatoria.');
+    showError('inputClienteColonia', 'Error colonia', 'mensajeActualizar', 'La colonia es obligatoria.');
     errores = true;
   }
   if (!isValidDate(nacimiento)) {
-    showError('inputClienteNacimiento', 'Error', 'mensajeActualizar', 'La fecha de nacimiento es inválida.');
+    showError('inputClienteNacimiento', 'Error nacimiento', 'mensajeActualizar', 'La fecha de nacimiento es inválida.');
     errores = true;
   }
   if (telefono && !/^\d{10}$/.test(telefono)) {
-    showError('inputClienteTelefono', 'Error', 'mensajeActualizar', 'El número de teléfono debe tener exactamente 10 dígitos y solo números.');
+    showError('inputClienteTelefono', 'Error telefono', 'mensajeActualizar', 'El número de teléfono debe tener exactamente 10 dígitos y solo números.');
     errores = true;
   }
   if (email && !/\S+@\S+\.\S+/.test(email)) {
-    showError('inputClienteEmail', 'Error', 'mensajeActualizar', 'El correo electrónico no tiene un formato válido.');
+    showError('inputClienteEmail', 'Error mail', 'mensajeActualizar', 'El correo electrónico no tiene un formato válido.');
     errores = true;
   }
 
   if (errores) return; // Si hay errores, no continuar
 
   try {
-    // Agregar el prefijo +52 antes de guardar el número en la base de datos si no lo tiene
-    if (telefono && !telefono.startsWith('+52')) {
-      telefono = `+52${telefono}`;
-    }
-
     // Validar si teléfono o email ya existen en otro cliente
     const telefonoSnapshot = telefono
       ? await clientesRef.where('telefono', '==', telefono).where('clienteId', '!=', clienteId).limit(1).get()
@@ -896,12 +836,12 @@ botonActualizar.addEventListener('click', async () => {
       : { size: 0 };
 
     if (telefonoSnapshot.size > 0) {
-      showError('inputClienteTelefono', 'Error', 'mensajeActualizar', 'El número de teléfono ya está registrado con otro cliente.');
+      showError('inputClienteTelefono', 'Error telefono', 'mensajeActualizar', 'El número de teléfono ya está registrado con otro cliente.');
       return;
     }
 
     if (emailSnapshot.size > 0) {
-      showError('inputClienteEmail', 'Error', 'mensajeActualizar', 'El correo electrónico ya está registrado con otro cliente.');
+      showError('inputClienteEmail', 'Error mail', 'mensajeActualizar', 'El correo electrónico ya está registrado con otro cliente.');
       return;
     }
 
@@ -915,7 +855,21 @@ botonActualizar.addEventListener('click', async () => {
     if (email) datosActualizar.email = email;
 
     // Actualizar los datos en Firestore
-    await clientesRef.doc(clienteId).update(datosActualizar);
+    const clienteActual = JSON.parse(sessionStorage.getItem("clienteActual"));
+    const fuente = clienteActual?.fuente || (parseInt(clienteId) >= 3000 ? "supabase" : "firebase");
+
+    if (fuente === "firebase") {
+      await clientesRef.doc(clienteId).update(datosActualizar);
+    } else {
+      const { error } = await supabase
+        .from("clientes")
+        .update(datosActualizar)
+        .eq("cliente_id", clienteId);
+
+      if (error) {
+        throw new Error("Error al actualizar cliente en Supabase: " + error.message);
+      }
+    }
 
     // Validar visualmente los campos como correctos
     validacionAgregarValid([
@@ -928,7 +882,22 @@ botonActualizar.addEventListener('click', async () => {
     showmessage("Clliente actualizado Correctamente", "success")
 
     // 🔹 Obtener los datos actualizados del cliente
-    const clienteActualizado = await clientesRef.doc(clienteId).get();
+    let clienteActualizado;
+    if (fuente === "firebase") {
+      clienteActualizado = await clientesRef.doc(clienteId).get();
+    } else {
+      const { data, error } = await supabase
+        .from("clientes")
+        .select("*")
+        .eq("cliente_id", clienteId)
+        .single();
+
+      if (error || !data) {
+        throw new Error("Error al obtener cliente actualizado desde Supabase");
+      }
+
+      clienteActualizado = data;
+    }
 
     // Oculta contenedores y botones
     ocultarContenedores();
@@ -936,16 +905,18 @@ botonActualizar.addEventListener('click', async () => {
     // 🔹 LIMPIAR INPUTS DESPUÉS DE ACTUALIZAR
     limpiarInputs(['inputClienteId', 'inputClienteNombre', 'inputClienteAlcaldia',
       'inputClienteColonia', 'inputClienteNacimiento', 'inputClienteTelefono', 'inputClienteEmail']);
-    if (clienteActualizado.exists) {
-      mostrarDatosCliente(clienteActualizado); // Mostrar los datos actualizados en pantalla
+    if ((fuente === "firebase" && clienteActualizado.exists) || (fuente === "supabase" && clienteActualizado)) {
+      mostrarDatosCliente(clienteActualizado);
     } else {
-      showError('mensajeActualizar', 'Error', 'mensajeActualizar', 'No se pudieron recuperar los datos actualizados.');
+      showError('mensajeActualizar', 'Error al recuperar datos', 'mensajeActualizar', 'No se pudieron recuperar los datos actualizados.');
     }
+
   } catch (error) {
     console.error('Error al actualizar los datos del cliente:', error);
     showError('inputClienteId', 'Error', 'mensajeActualizar', 'Hubo un error al actualizar el cliente. Inténtalo de nuevo.');
   }
 });
+
 function limpiarInputs(inputIds) {
   inputIds.forEach(id => {
     const input = document.getElementById(id);
