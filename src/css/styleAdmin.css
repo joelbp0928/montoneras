@@ -1052,3 +1052,8 @@ img {
     display: block; /* Asegurar que los campos se muestren en columna */
   }
 }
+
+#buscarClienteInput:focus {
+  outline: 3px solid #19875433; /* verde suave */
+  box-shadow: 0 0 0 0.25rem rgba(25,135,84,.25);
+}

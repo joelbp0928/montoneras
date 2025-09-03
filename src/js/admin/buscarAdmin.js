@@ -18,6 +18,63 @@ const datosAdicionales = document.getElementById('datosAdicionales');
 const flecha = document.getElementById('flecha');
 const buscarInput = document.getElementById('buscarClienteInput');
 
+// --- Autofocus robusto para lectores de código de barras ---
+const focusBuscar = () => {
+  if (!buscarInput) return;
+  // Intento de foco + selección por si ya hay texto
+  buscarInput.focus({ preventScroll: true });
+  // Pequeño delay para navegadores que ignoran el primer focus en carga
+  requestAnimationFrame(() => {
+    buscarInput.focus({ preventScroll: true });
+    buscarInput.select?.();
+  });
+};
+
+// 1) Al cargar DOM
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', focusBuscar);
+} else {
+  focusBuscar();
+}
+
+// 2) Si el tab pierde/recupera visibilidad, volvemos a enfocar
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') focusBuscar();
+});
+
+// 3) Si hacen click fuera (toast, modal, etc.), regresamos el foco
+document.addEventListener('click', (e) => {
+  // Evita robar foco cuando se hace click en botones de búsqueda o inputs
+  const interactive = e.target.closest('button, [role="button"], input, select, textarea, a');
+  if (!interactive) focusBuscar();
+});
+
+// 4) Muchos escáneres envían Enter al final: dispara la búsqueda por ID
+buscarInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    // Reutiliza tu flujo actual
+    ocultarContenedores();
+    limpiarLabels();
+    hideError('buscarClienteInput', 'mensajeErrorBuscar');
+    const valor = buscarInput.value.trim();
+    if (!valor) {
+      showError('buscarClienteInput', 'ingrese un valor', 'mensajeErrorBuscar', 'Búsqueda vacía, ingrese un valor a buscar.');
+      return;
+    }
+    // Si es número: asume ID (uso típico de pistola)
+    if (/^\d+$/.test(valor)) {
+      buscarCliente('clienteId', valor);
+    } else {
+      // Si no es puramente numérico, intenta nombre/correo/teléfono según convenga
+      buscarCliente('nombre', valor);
+    }
+  }
+});
+
+
+
+
 // Importar módulos adicionales para Supabase
 import { supabase } from '../config-supabase.js';
 
@@ -122,12 +179,20 @@ async function buscarEnSupabase(campo, valor) {
 // Función para mostrar error cuando no se encuentra cliente
 function mostrarErrorNoEncontrado(campo, valor) {
   const campoAmigable = obtenerDescripcionCampo(campo);
+
   showError(
     'buscarClienteInput',
     `No se encontró ningún cliente con ese ${campoAmigable}`,
     'mensajeErrorBuscar',
     'Verifica el dato o intenta con otro campo como correo, teléfono o nombre.'
   );
+
+  // 🔹 Limpiar input y devolverle el foco para ingresar uno nuevo
+  const buscarInput = document.getElementById('buscarClienteInput');
+  if (buscarInput) {
+    buscarInput.value = '';
+    buscarInput.focus();
+  }
 }
 
 // Event listener para buscar al cliente
