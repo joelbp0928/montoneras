@@ -11,7 +11,6 @@ document.addEventListener("DOMContentLoaded", function () {
   setupAdminEventListeners(); 
 });
 
-
 const cerrarSesionBtn = document.getElementById("logout");
 
 cerrarSesionBtn.addEventListener("click", () => {

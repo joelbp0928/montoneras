@@ -649,7 +649,8 @@ img {
 
 .option-green {
   background-color: #5cb85c; /* Verde */
-}|
+}
+
 .option-yellow {
   background-color: #ffc107; /* Amarillo */
   color: #000; /* Texto oscuro para legibilidad */
@@ -1056,4 +1057,19 @@ img {
 #buscarClienteInput:focus {
   outline: 3px solid #19875433; /* verde suave */
   box-shadow: 0 0 0 0.25rem rgba(25,135,84,.25);
+}
+
+/* Estilo para centrar y mejorar la bienvenida */
+.welcome-container {
+  text-align: center;
+  margin: auto;
+  max-width: 900%;
+}
+
+.welcome-message {
+  font-size: 22px;
+  font-weight: bold;
+  color: #bd228e;
+  text-align: center;
+  /*margin-bottom: 10px;*/
 }

@@ -1,6 +1,4 @@
-import { doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js";
 import { showmessage } from '../js/showmessage.js';
-import { db } from "./firebase.js";
 import { supabase } from "./config-supabase.js";
 import { logincheck } from "./logincheck.js";
 
@@ -12,8 +10,8 @@ export const setupPosts = async (data, email, telefono) => {
 
   try {
     // 1. Obtener configuración desde Firebase
-    const { welcomeMessage, restaurantName } = await getConfig();
-
+    //const { welcomeMessage, restaurantName } = await getConfig();
+    //renderWelcomeMessage(welcomeMessage, restaurantName);
     // 2. Buscar cliente en Firebase o Supabase
     const cliente = await findClient(data, email, telefono);
 
@@ -22,25 +20,16 @@ export const setupPosts = async (data, email, telefono) => {
       renderClientCard(cliente);
       showmessage(`¡Bienvenid@ ${cliente.nombre}!`, "success");
     } else {
-      renderWelcomeMessage(welcomeMessage, restaurantName);
+      console.warn("Cliente no encontrado en Supabase");
+      //renderWelcomeMessage(welcomeMessage, restaurantName);
     }
   } catch (error) {
     console.error("Error en setupPosts:", error);
-    renderWelcomeMessage();
+    //renderWelcomeMessage();
   }
 };
 
 // Helper Functions
-
-async function getConfig() {
-  const docRef = doc(db, "configuracion", "admin");
-  const docSnap = await getDoc(docRef);
-
-  return {
-    welcomeMessage: docSnap.exists() ? docSnap.data().welcomeMessage : "",
-    restaurantName: docSnap.exists() ? docSnap.data().restaurantName : ""
-  };
-}
 async function findClient(firebaseData, email, telefono) {
   // 1. Buscar en los datos de Firebase primero
   if (Array.isArray(firebaseData) && firebaseData.length > 0) {
@@ -165,78 +154,49 @@ function setupQRButton() {
   }, 100);
 }
 
-function renderWelcomeMessage(welcomeMessage = "", restaurantName = "") {
-  if (!postList) {
-    console.log("Elemento '.posts' no encontrado en el DOM");
+// Función para verificar sesión en Supabase y cargar datos
+export async function checkSupabaseSession() {
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+  if (sessionError) {
+    console.error("Error obteniendo sesión:", sessionError.message);
+    logincheck(null);
     return;
   }
 
-  const hasRestaurantName = restaurantName.trim() !== "";
-  const hasWelcomeMessage = welcomeMessage.trim() !== "";
+  const user = session?.user ?? null;
+  logincheck(user);
 
-  postList.innerHTML = `
-    <div class="welcome-container">
-      <h2 class="welcome-message">
-        <strong>${hasRestaurantName
-      ? `¡Bienvenido al Programa de Recompensas de ${restaurantName}`
-      : '¡Bienvenido a nuestro programa de recompensas!'}
-        </strong>
-      </h2>
-      ${hasWelcomeMessage ? `<p class="text-center">${welcomeMessage}</p>` : ''}
-    </div>
-  `;
-}
+  if (!user) return;
 
-function showWelcomeMessage(message) {
-  showmessage(message, "success");
-}
-
-// Listener para cambios en la configuración
-onSnapshot(doc(db, "configuracion", "admin"), (docSnap) => {
-  if (docSnap.exists()) {
-    const config = docSnap.data();
-    renderWelcomeMessage(
-      config.welcomeMessage || "¡Bienvenid@ a nuestro programa de recompensas!",
-      config.restaurantName || ""
-    );
-  }
-});
-
-// Función para verificar sesión en Supabase y cargar datos
-export async function checkSupabaseSession() {
-  const { data: { session } } = await supabase.auth.getSession();
-  console.log("Sesión encontrada", session)
-  if (session && session.user) {
-    const user = session.user;
-    const email = user.email;
-    const userId = user.id;
-
-    // Mostrar botones de sesión iniciada
-    logincheck(user);
-
-    // Buscar datos del cliente en Supabase
+  try {
     const { data: supabaseUser, error } = await supabase
       .from("clientes")
       .select("*")
-      .eq("cliente_uid", userId)
+      .eq("cliente_uid", user.id)
       .single();
 
-    if (supabaseUser && !error) {
-      const formattedUser = {
-        clienteId: supabaseUser.cliente_id,
-        nombre: supabaseUser.nombre,
-        email: supabaseUser.email,
-        telefono: supabaseUser.telefono,
-        puntos: supabaseUser.puntos_actuales
-      };
-
-      sessionStorage.setItem("clienteId", formattedUser.clienteId);
-      sessionStorage.setItem("clienteNombre", formattedUser.nombre);
-      sessionStorage.setItem("clienteEmail", formattedUser.email);
-      console.log("Datos del cliente encontrados en Supabase:", formattedUser);
-      setupPosts([{ data: () => formattedUser }], formattedUser.email, formattedUser.telefono);
-    } else {
-      console.warn("⚠️ Usuario Supabase autenticado pero no registrado en 'clientes'");
+    if (error || !supabaseUser) {
+      console.warn("Usuario autenticado pero no registrado en 'clientes'");
+      showmessage("No encontramos tu perfil de cliente. Contáctanos para activarlo.");
+      return;
     }
+
+    const formattedUser = {
+      clienteId: supabaseUser.cliente_id,
+      nombre: supabaseUser.nombre,
+      email: supabaseUser.email,
+      telefono: supabaseUser.telefono,
+      puntos: supabaseUser.puntos_actuales
+    };
+
+    sessionStorage.setItem("clienteId", formattedUser.clienteId);
+    sessionStorage.setItem("clienteNombre", formattedUser.nombre);
+    sessionStorage.setItem("clienteEmail", formattedUser.email);
+
+    setupPosts([{ data: () => formattedUser }], formattedUser.email, formattedUser.telefono);
+  } catch (err) {
+    console.error("Error consultando datos del cliente:", err);
+    showmessage("Ocurrió un error cargando tu información.");
   }
 }

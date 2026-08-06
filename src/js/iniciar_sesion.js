@@ -14,17 +14,17 @@ signInForm.addEventListener("submit", async (e) => {
 
   try {
     // Configurar persistencia de sesión
-    await setPersistence(auth, browserSessionPersistence);
+   // await setPersistence(auth, browserSessionPersistence);
 
     // Intentar primero con Firebase Auth
-    try {
-      const userCredentials = await signInWithEmailAndPassword(auth, email, password);
-      const userId = userCredentials.user.uid;
-      await handleUserFound(userId);
-      return;
-    } catch (firebaseError) {
-      console.log("Firebase Auth falló, intentando con Supabase...");
-    }
+   // try {
+     // const userCredentials = await signInWithEmailAndPassword(auth, email, password);
+     // const userId = userCredentials.user.uid;
+     // await handleUserFound(userId);
+     // return;
+   // } catch (firebaseError) {
+     // console.log("Firebase Auth falló, intentando con Supabase...");
+   // }
 
     // Si Firebase falla, intentar con Supabase Auth
     const { data: supabaseAuth, error: supabaseError } = await supabase.auth.signInWithPassword({
@@ -38,27 +38,19 @@ signInForm.addEventListener("submit", async (e) => {
     console.log("Usuario Supabase autenticado:", supabaseAuth.user);
 
     const userId = supabaseAuth.user.id;
-    await handleUserFound(userId, true); // true indica que es usuario de Supabase
+    await handleUserFound(userId); // true indica que es usuario de Supabase
 
   } catch (error) {
     handleLoginError(error);
   }
 });
 
-export async function handleUserFound(userId, isSupabaseUser = false) {
+export async function handleUserFound(userId) {
   let userData = null;
   let isAdmin = false;
 
-  // Buscar en Firebase Firestore
-  if (!isSupabaseUser) {
-    userData = await findUserInFirebase(userId);
-    if (userData) {
-      isAdmin = userData.rol === "admin";
-    }
-  }
-
   // Si no se encontró en Firebase o es usuario de Supabase, buscar en Supabase
-  if (!userData || isSupabaseUser) {
+  if (!userData) {
     userData = await findUserInSupabase(userId);
     if (userData) {
       isAdmin = userData.rol === "admin";
@@ -98,7 +90,6 @@ export async function handleUserFound(userId, isSupabaseUser = false) {
 
   //window.location.reload();
   // Llamar manualmente setupPosts
-  if (isSupabaseUser) {
     import('./postPuntos.js').then(({ setupPosts }) => {
       const formattedUser = {
         clienteId: userData.clienteId || userData.cliente_id,
@@ -110,7 +101,6 @@ export async function handleUserFound(userId, isSupabaseUser = false) {
       console.log("➡️ Mostrando datos directamente tras login Supabase", formattedUser);
       setupPosts([{ data: () => formattedUser }], formattedUser.email, formattedUser.telefono);
     });
-  }
 }
 
 // Helper Functions (igual que en la solución anterior)

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -29,7 +29,12 @@
     />
   </head>
   <!-- 🔒 Botón de cerrar sesión flotante -->
-  <a href="#" id="logout" class="logout-icon logged-in d-none" title="Cerrar sesión">
+  <a
+    href="#"
+    id="logout"
+    class="logout-icon logged-in d-none"
+    title="Cerrar sesión"
+  >
     <i class="fas fa-sign-out-alt"></i>
   </a>
   <body>
@@ -70,6 +75,14 @@
       <div class="menu-button-container">
         <a href="#" type="button" class="menu-button" id="openMenu"> Menú </a>
       </div>
+
+      <!-- Botón encuesta -->
+      <div class="menu-button-container">
+        <button id="btnEncuesta" class="btn btn-outline-success">
+          <i class="bi bi-emoji-smile"></i> Encuesta de satisfacción
+        </button>
+      </div>
+
       <!-- 🔹 Botones de redes sociales -->
       <div class="social-buttons-container">
         <a
@@ -122,6 +135,7 @@
   -->
       </div>
     </div>
+
     <!-- 🔹 Modal con Carrusel -->
     <div class="modal fade" id="menuModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg">
@@ -426,14 +440,152 @@
         </div>
       </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+
+    <!-- Modal: Capturar código de compra -->
+    <div
+      class="modal fade"
+      id="codigoCompraModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5>Validar compra</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Cerrar"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>
+              Ingresa tu <strong>código de compra</strong> (aparece en tu
+              ticket):
+            </p>
+            <input
+              type="text"
+              id="codigoCompraInput"
+              class="form-control"
+              placeholder="Ej. MD-ABC123"
+              autocomplete="off"
+            />
+            <small id="codigoCompraHelp" class="text-muted"
+              >Tip: también puedes escanear el QR del ticket.</small
+            >
+            <div
+              id="errorCodigoCompra"
+              class="invalid-feedback d-block"
+              style="display: none"
+            ></div>
+          </div>
+          <div class="modal-footer">
+            <button id="validarCodigoBtn" class="btn btn-success">
+              Validar y continuar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Encuesta de satisfacción (corta) -->
+    <div class="modal fade" id="encuestaModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <form id="encuestaForm" class="modal-content">
+          <div class="modal-header">
+            <h5>Encuesta de satisfacción</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Cerrar"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <!-- Preguntas rápidas -->
+            <div class="mb-3">
+              <label class="form-label"
+                >1) ¿Qué tan satisfecho estás con el servicio?</label
+              >
+              <select id="p1" class="form-select" required>
+                <option value="" selected disabled>Selecciona...</option>
+                <option>Muy satisfecho</option>
+                <option>Satisfecho</option>
+                <option>Neutral</option>
+                <option>Insatisfecho</option>
+                <option>Muy insatisfecho</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label"
+                >2) ¿La calidad de tu producto fue la esperada?</label
+              >
+              <select id="p2" class="form-select" required>
+                <option value="" selected disabled>Selecciona...</option>
+                <option>Excelente</option>
+                <option>Buena</option>
+                <option>Regular</option>
+                <option>Mala</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">3) ¿Qué mejorarías?</label>
+              <textarea
+                id="p3"
+                class="form-control"
+                rows="3"
+                placeholder="Opcional"
+              ></textarea>
+            </div>
+            <div
+              id="encuestaError"
+              class="text-danger"
+              style="display: none"
+            ></div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="submit"
+              id="enviarEncuestaBtn"
+              class="btn btn-primary"
+            >
+              Enviar encuesta y generar cupón
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Cupón generado -->
+    <div class="modal fade" id="cuponModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content text-center">
+          <div class="modal-header">
+            <h5>¡Gracias por tu opinión!</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Cerrar"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>Este es tu cupón:</p>
+            <h3 id="codigoCupon" class="fw-bold"></h3>
+            <p class="mb-1"><small id="detalleCupon"></small></p>
+            <canvas id="qrCupon" style="margin: 10px auto"></canvas>
+            <p class="mt-2">
+              <small>Muéstralo en caja para aplicar el beneficio.</small>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.7.7/dist/js/tempus-dominus.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.7.7/dist/locales/es.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script
       type="text/javascript"
       src="https://cdn.jsdelivr.net/npm/toastify-js"

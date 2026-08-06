@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -28,6 +28,14 @@
       <a href="./indexadmin.html">
         <img src="../img/LOGO MONTO.png" alt="Logo" class="logo" />
       </a>
+    </div>
+
+    <div>
+      <div class="row">
+        <div class="col-md-6 offset-md-3">
+          <ul class="list-group posts"></ul>
+        </div>
+      </div>
     </div>
 
     <!-- 🔹 Botón de Configuración (Usando Bootstrap) -->
@@ -188,11 +196,10 @@
                   </div>
 
                   <!-- Campo de porcentaje (Por compra) -->
-                  <div
-                    id="purchasePointsField"
-                    class="align-items-center"
-                  >
-                    <label for="pointsPercentage" class="d-none"><strong>%</strong></label>
+                  <div id="purchasePointsField" class="align-items-center">
+                    <label for="pointsPercentage" class="d-none"
+                      ><strong>%</strong></label
+                    >
                     <input
                       type="number"
                       id="pointsPercentage"
@@ -203,15 +210,15 @@
                     />
                     <span class="input-group-text"
                       ><i class="fas fa-percentage"></i
-                    ></span> <!-- Mostrar el ícono de porcentaje -->
+                    ></span>
+                    <!-- Mostrar el ícono de porcentaje -->
                   </div>
 
                   <!-- Campo de visitas (Por visita) -->
-                  <div
-                    id="visitPointsField"
-                    class="align-items-center"
-                  >
-                    <label for="visitsRequired" class="input-group-text"><strong>🏆</strong></label>
+                  <div id="visitPointsField" class="align-items-center">
+                    <label for="visitsRequired" class="input-group-text"
+                      ><strong>🏆</strong></label
+                    >
                     <input
                       type="number"
                       id="visitsRequired"
