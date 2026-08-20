@@ -25,14 +25,3 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 export const storage = getStorage(app); // Inicializa Firebase Storage
-
-// 👇 Establecer persistencia local
-setPersistence(auth, browserLocalPersistence)
-  .then(() => {
-    console.log("browserLocalPersistence ", browserLocalPersistence);
-    console.log("nombre autenticación de Firebase:", auth.currentUser ? auth.currentUser.email : "No hay usuario autenticado");
-    console.log("✅ Sesión persistente habilitada.");
-  })
-  .catch((error) => {
-    console.error("⚠️ Error al establecer persistencia:", error);
-  });

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Establecer contraseña</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 60px auto;
+            padding: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        input,
+        button {
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        #mensaje {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <h1>Configura tu contraseña</h1>
+
+    <p>
+        Crea una contraseña para acceder al panel de administración
+        de tu restaurante.
+    </p>
+
+
+    <form id="passwordForm">
+
+        <label for="password">
+            Nueva contraseña
+        </label>
+
+        <input
+            type="password"
+            id="password"
+            minlength="8"
+            autocomplete="new-password"
+            required
+        >
+
+
+        <label for="confirmPassword">
+            Confirmar contraseña
+        </label>
+
+        <input
+            type="password"
+            id="confirmPassword"
+            minlength="8"
+            autocomplete="new-password"
+            required
+        >
+
+
+        <button
+            type="submit"
+            id="submitButton"
+        >
+            Establecer contraseña
+        </button>
+
+    </form>
+
+
+    <div id="mensaje"></div>
+
+
+    <script type="module">
+
+        import {
+            supabase
+        } from "../js/config-supabase.js";
+
+
+        const form =
+            document.getElementById("passwordForm");
+
+        const passwordInput =
+            document.getElementById("password");
+
+        const confirmPasswordInput =
+            document.getElementById("confirmPassword");
+
+        const submitButton =
+            document.getElementById("submitButton");
+
+        const mensaje =
+            document.getElementById("mensaje");
+
+
+        // =====================================================
+        // VERIFICAR QUE EL ENLACE CREÓ UNA SESIÓN
+        // =====================================================
+
+        async function verificarSesion() {
+
+            mensaje.textContent =
+                "Verificando invitación...";
+
+
+            const {
+                data: { session },
+                error
+            } = await supabase.auth.getSession();
+
+
+            if (error) {
+
+                console.error(
+                    "Error obteniendo sesión:",
+                    error
+                );
+
+                mensaje.textContent =
+                    "❌ No se pudo verificar la invitación.";
+
+                form.style.display =
+                    "none";
+
+                return false;
+
+            }
+
+
+            if (!session?.user) {
+
+                mensaje.textContent =
+                    "❌ El enlace no es válido o ha expirado.";
+
+                form.style.display =
+                    "none";
+
+                return false;
+
+            }
+
+
+            console.log(
+                "Usuario invitado:",
+                session.user.email
+            );
+
+
+            mensaje.textContent =
+                `Invitación válida para ${session.user.email}`;
+
+
+            return true;
+
+        }
+
+
+
+        // =====================================================
+        // ESTABLECER CONTRASEÑA
+        // =====================================================
+
+        form.addEventListener(
+            "submit",
+            async event => {
+
+                event.preventDefault();
+
+
+                const password =
+                    passwordInput.value;
+
+                const confirmPassword =
+                    confirmPasswordInput.value;
+
+
+                // =============================================
+                // VALIDACIONES
+                // =============================================
+
+                if (
+                    password !==
+                    confirmPassword
+                ) {
+
+                    mensaje.textContent =
+                        "❌ Las contraseñas no coinciden.";
+
+                    return;
+
+                }
+
+
+                if (
+                    password.length < 8
+                ) {
+
+                    mensaje.textContent =
+                        "❌ La contraseña debe tener al menos 8 caracteres.";
+
+                    return;
+
+                }
+
+
+                submitButton.disabled =
+                    true;
+
+                mensaje.textContent =
+                    "Guardando contraseña...";
+
+
+                try {
+
+
+                    // =========================================
+                    // VERIFICAR SESIÓN NUEVAMENTE
+                    // =========================================
+
+                    const {
+                        data: { user },
+                        error: userError
+                    } =
+                        await supabase.auth
+                            .getUser();
+
+
+                    if (
+                        userError ||
+                        !user
+                    ) {
+
+                        throw new Error(
+                            "La sesión de invitación ya no es válida."
+                        );
+
+                    }
+
+
+                    // =========================================
+                    // ACTUALIZAR CONTRASEÑA
+                    // =========================================
+
+                    const {
+                        error
+                    } =
+                        await supabase.auth
+                            .updateUser({
+
+                                password:
+                                    password
+
+                            });
+
+
+                    if (error) {
+                        throw error;
+                    }
+
+
+                    // =========================================
+                    // TODO CORRECTO
+                    // =========================================
+
+                    mensaje.textContent =
+                        "✅ Contraseña establecida correctamente.";
+
+
+                    form.style.display =
+                        "none";
+
+
+                    // =========================================
+                    // REDIRECCIÓN
+                    // =========================================
+
+                    setTimeout(() => {
+
+                        window.location.href =
+                            "./dueno.html";
+
+                    }, 1500);
+
+
+                }
+
+                catch (error) {
+
+                    console.error(
+                        "Error estableciendo contraseña:",
+                        error
+                    );
+
+
+                    mensaje.textContent =
+                        `❌ ${error.message}`;
+
+
+                    submitButton.disabled =
+                        false;
+
+                }
+
+            }
+        );
+
+
+
+        // =====================================================
+        // INICIALIZACIÓN
+        // =====================================================
+
+        verificarSesion();
+
+    </script>
+
+
+</body>
+
+</html>

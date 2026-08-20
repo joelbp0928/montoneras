@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Registrar restaurante
+    </title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 650px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        input,
+        button {
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: .6;
+        }
+
+        #mensaje {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        hr {
+            width: 100%;
+            margin: 15px 0;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<h1>
+    Alta de nuevo restaurante
+</h1>
+
+
+<form id="restaurantForm">
+
+
+    <!-- =============================================== -->
+    <!-- EMPRESA -->
+    <!-- =============================================== -->
+
+    <h2>
+        Empresa
+    </h2>
+
+
+    <label for="tenantNombre">
+        Nombre de la empresa
+    </label>
+
+    <input
+        type="text"
+        id="tenantNombre"
+        placeholder="Ej. Mr Donut"
+        required
+    >
+
+
+    <label for="tenantSlug">
+        Identificador / Slug
+    </label>
+
+    <input
+        type="text"
+        id="tenantSlug"
+        placeholder="ej. mr-donut"
+        required
+    >
+
+
+
+    <hr>
+
+
+
+    <!-- =============================================== -->
+    <!-- PROPIETARIO -->
+    <!-- =============================================== -->
+
+    <h2>
+        Propietario
+    </h2>
+
+
+    <label for="ownerNombre">
+        Nombre del propietario
+    </label>
+
+    <input
+        type="text"
+        id="ownerNombre"
+        placeholder="Ej. Juan Pérez"
+        required
+    >
+
+
+    <label for="ownerEmail">
+        Correo del propietario
+    </label>
+
+    <input
+        type="email"
+        id="ownerEmail"
+        placeholder="dueno@restaurante.com"
+        required
+    >
+
+
+    <small>
+        A este correo se enviará la invitación para crear su contraseña.
+    </small>
+
+
+
+    <hr>
+
+
+
+    <!-- =============================================== -->
+    <!-- RESTAURANTE PRINCIPAL -->
+    <!-- =============================================== -->
+
+    <h2>
+        Restaurante principal
+    </h2>
+
+
+    <label for="restaurantNombre">
+        Nombre
+    </label>
+
+    <input
+        type="text"
+        id="restaurantNombre"
+        placeholder="Ej. Mr Donut Tacuba"
+        required
+    >
+
+
+    <label for="restaurantSlug">
+        Identificador / Slug
+    </label>
+
+    <input
+        type="text"
+        id="restaurantSlug"
+        placeholder="ej. tacuba"
+        required
+    >
+
+
+    <label for="telefono">
+        Teléfono
+    </label>
+
+    <input
+        type="tel"
+        id="telefono"
+        placeholder="5555555555"
+    >
+
+
+    <label for="restaurantEmail">
+        Correo del restaurante
+    </label>
+
+    <input
+        type="email"
+        id="restaurantEmail"
+        placeholder="contacto@restaurante.com"
+    >
+
+
+
+    <button
+        type="submit"
+        id="submitButton"
+    >
+        Registrar e invitar propietario
+    </button>
+
+
+</form>
+
+
+<div id="mensaje"></div>
+
+
+
+<script type="module">
+
+    import {
+        supabase
+    } from "../js/config-supabase.js";
+
+
+    const form =
+        document.getElementById(
+            "restaurantForm"
+        );
+
+
+    const mensaje =
+        document.getElementById(
+            "mensaje"
+        );
+
+
+    const submitButton =
+        document.getElementById(
+            "submitButton"
+        );
+
+
+
+    // =================================================
+    // GENERAR SLUG
+    // =================================================
+
+    function generarSlug(texto) {
+
+        return texto
+            .normalize("NFD")
+            .replace(
+                /[\u0300-\u036f]/g,
+                ""
+            )
+            .toLowerCase()
+            .trim()
+            .replace(
+                /[^a-z0-9]+/g,
+                "-"
+            )
+            .replace(
+                /^-+|-+$/g,
+                ""
+            );
+
+    }
+
+
+
+    // =================================================
+    // GENERAR SLUG AUTOMÁTICAMENTE
+    // =================================================
+
+    document
+        .getElementById(
+            "tenantNombre"
+        )
+        .addEventListener(
+            "input",
+            event => {
+
+                document
+                    .getElementById(
+                        "tenantSlug"
+                    )
+                    .value =
+                    generarSlug(
+                        event.target.value
+                    );
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "restaurantNombre"
+        )
+        .addEventListener(
+            "input",
+            event => {
+
+                document
+                    .getElementById(
+                        "restaurantSlug"
+                    )
+                    .value =
+                    generarSlug(
+                        event.target.value
+                    );
+
+            }
+        );
+
+
+
+    // =================================================
+    // REGISTRAR
+    // =================================================
+
+    form.addEventListener(
+        "submit",
+        async event => {
+
+            event.preventDefault();
+
+
+            submitButton.disabled = true;
+
+            mensaje.textContent =
+                "Creando empresa, restaurante y propietario...";
+
+
+            try {
+
+
+                // =========================================
+                // ARMAR REQUEST
+                // =========================================
+
+                const body = {
+
+                    tenantNombre:
+                        document
+                            .getElementById(
+                                "tenantNombre"
+                            )
+                            .value
+                            .trim(),
+
+                    tenantSlug:
+                        document
+                            .getElementById(
+                                "tenantSlug"
+                            )
+                            .value
+                            .trim(),
+
+                    ownerNombre:
+                        document
+                            .getElementById(
+                                "ownerNombre"
+                            )
+                            .value
+                            .trim(),
+
+                    ownerEmail:
+                        document
+                            .getElementById(
+                                "ownerEmail"
+                            )
+                            .value
+                            .trim(),
+
+                    restaurantNombre:
+                        document
+                            .getElementById(
+                                "restaurantNombre"
+                            )
+                            .value
+                            .trim(),
+
+                    restaurantSlug:
+                        document
+                            .getElementById(
+                                "restaurantSlug"
+                            )
+                            .value
+                            .trim(),
+
+                    telefono:
+                        document
+                            .getElementById(
+                                "telefono"
+                            )
+                            .value
+                            .trim(),
+
+                    restaurantEmail:
+                        document
+                            .getElementById(
+                                "restaurantEmail"
+                            )
+                            .value
+                            .trim()
+
+                };
+
+
+                // =========================================
+                // EDGE FUNCTION
+                // =========================================
+
+                const {
+                    data,
+                    error
+                } =
+                    await supabase
+                        .functions
+                        .invoke(
+                            "rapid-responder",
+                            {
+                                body
+                            }
+                        );
+
+
+if (error) {
+    console.error("Error Edge Function:", error);
+
+    if (error.context) {
+        try {
+            const detalle = await error.context.json();
+
+            console.error(
+                "Respuesta completa Edge Function:",
+                detalle
+            );
+
+            throw new Error(
+                detalle.error ||
+                "Error en crear-tenant"
+            );
+
+        } catch {
+            throw error;
+        }
+    }
+
+    throw error;
+}
+
+                if (!data?.success) {
+
+                    throw new Error(
+                        data?.error ??
+                        "No se pudo registrar el restaurante."
+                    );
+
+                }
+
+
+                // =========================================
+                // CORRECTO
+                // =========================================
+
+                mensaje.textContent =
+                    `✅ ${data.restaurant.nombre} registrado. 
+                     Se envió una invitación a ${data.owner.email}.`;
+
+
+                console.log(
+                    "Tenant creado:",
+                    data
+                );
+
+
+                form.reset();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Error registrando:",
+                    error
+                );
+
+
+                mensaje.textContent =
+                    `❌ ${error.message}`;
+
+            }
+
+            finally {
+
+                submitButton.disabled =
+                    false;
+
+            }
+
+        }
+    );
+
+</script>
+
+
+</body>
+
+</html>

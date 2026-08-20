@@ -13,20 +13,7 @@ signInForm.addEventListener("submit", async (e) => {
   const password = signInForm["login-password"].value;
 
   try {
-    // Configurar persistencia de sesión
-   // await setPersistence(auth, browserSessionPersistence);
-
-    // Intentar primero con Firebase Auth
-   // try {
-     // const userCredentials = await signInWithEmailAndPassword(auth, email, password);
-     // const userId = userCredentials.user.uid;
-     // await handleUserFound(userId);
-     // return;
-   // } catch (firebaseError) {
-     // console.log("Firebase Auth falló, intentando con Supabase...");
-   // }
-
-    // Si Firebase falla, intentar con Supabase Auth
+    // Intentar iniciar sesión con Firebase
     const { data: supabaseAuth, error: supabaseError } = await supabase.auth.signInWithPassword({
       email,
       password
@@ -49,13 +36,10 @@ export async function handleUserFound(userId) {
   let userData = null;
   let isAdmin = false;
 
-  // Si no se encontró en Firebase o es usuario de Supabase, buscar en Supabase
-  if (!userData) {
     userData = await findUserInSupabase(userId);
     if (userData) {
       isAdmin = userData.rol === "admin";
     }
-  }
 
   if (!userData) {
     throw new Error("Usuario no encontrado en la base de datos");
@@ -101,20 +85,6 @@ export async function handleUserFound(userId) {
       console.log("➡️ Mostrando datos directamente tras login Supabase", formattedUser);
       setupPosts([{ data: () => formattedUser }], formattedUser.email, formattedUser.telefono);
     });
-}
-
-// Helper Functions (igual que en la solución anterior)
-async function findUserInFirebase(userId) {
-  try {
-    const userQuery = await getDocs(query(collection(db, 'clientes'), where('clienteUid', '==', userId)));
-    if (!userQuery.empty) {
-      return userQuery.docs[0].data();
-    }
-    return null;
-  } catch (error) {
-    console.error("Error buscando en Firebase:", error);
-    return null;
-  }
 }
 
 async function findUserInSupabase(userId) {

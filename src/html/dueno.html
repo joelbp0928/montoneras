@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Panel del propietario</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        form {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        input,
+        button {
+            padding: 10px;
+        }
+
+        .restaurante {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .acciones {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        #mensaje {
+            margin: 15px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Panel de propietario</h1>
+
+    <p id="usuario"></p>
+
+    <button id="logout">
+        Cerrar sesión
+    </button>
+
+    <hr>
+
+    <h2>Agregar sucursal</h2>
+
+    <form id="formSucursal">
+
+        <input
+            id="nombre"
+            placeholder="Nombre de la sucursal"
+            required
+        >
+
+        <input
+            id="slug"
+            placeholder="Slug, ej. polanco"
+            required
+        >
+
+        <input
+            id="telefono"
+            placeholder="Teléfono"
+        >
+
+        <input
+            id="email"
+            type="email"
+            placeholder="Email"
+        >
+
+        <button type="submit">
+            Agregar sucursal
+        </button>
+
+    </form>
+
+    <div id="mensaje"></div>
+
+    <h2>Mis sucursales</h2>
+
+    <div id="listaRestaurantes"></div>
+
+
+<script type="module">
+
+import { supabase } from "../js/config-supabase.js";
+
+
+const usuarioElement =
+    document.getElementById("usuario");
+
+const lista =
+    document.getElementById("listaRestaurantes");
+
+const mensaje =
+    document.getElementById("mensaje");
+
+const form =
+    document.getElementById("formSucursal");
+
+
+let tenantId = null;
+
+
+// =====================================================
+// INICIALIZACIÓN
+// =====================================================
+
+async function init() {
+
+    const {
+        data: { user },
+        error
+    } = await supabase.auth.getUser();
+
+
+    if (error || !user) {
+
+        window.location.href = "../index.html";
+
+        return;
+
+    }
+
+
+    usuarioElement.textContent =
+        `Sesión: ${user.email}`;
+
+
+    // Buscar a qué tenant pertenece el usuario
+
+    const {
+        data: member,
+        error: memberError
+    } = await supabase
+        .from("tenant_members")
+        .select(`
+            tenant_id,
+            role,
+            tenants (
+                nombre
+            )
+        `)
+        .eq("user_id", user.id)
+        .eq("activo", true)
+        .single();
+
+
+    if (memberError || !member) {
+
+        mensaje.textContent =
+            "No tienes un negocio asignado.";
+
+        return;
+
+    }
+
+
+    tenantId = member.tenant_id;
+
+
+    document.querySelector("h1").textContent =
+        `Panel - ${member.tenants.nombre}`;
+
+
+    await cargarRestaurantes();
+
+}
+
+
+// =====================================================
+// LISTAR RESTAURANTES
+// =====================================================
+
+async function cargarRestaurantes() {
+
+    const {
+        data,
+        error
+    } = await supabase
+        .from("restaurants")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .order("created_at");
+
+
+    if (error) {
+
+        console.error(error);
+
+        mensaje.textContent =
+            "Error cargando sucursales.";
+
+        return;
+
+    }
+
+
+    lista.innerHTML = "";
+
+
+    data.forEach(restaurante => {
+
+        lista.innerHTML += `
+
+            <div class="restaurante">
+
+                <strong>
+                    ${restaurante.nombre}
+                </strong>
+
+                <p>
+                    ${restaurante.email ?? ""}
+                </p>
+
+                <p>
+                    ${restaurante.telefono ?? ""}
+                </p>
+
+                <div class="acciones">
+
+                    <button
+                        class="editar"
+                        data-id="${restaurante.id}">
+                        Editar
+                    </button>
+
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+}
+
+
+// =====================================================
+// CREAR SUCURSAL
+// =====================================================
+
+form.addEventListener(
+    "submit",
+    async event => {
+
+        event.preventDefault();
+
+
+        if (!tenantId) return;
+
+
+        const nombre =
+            document
+            .getElementById("nombre")
+            .value
+            .trim();
+
+        const slug =
+            document
+            .getElementById("slug")
+            .value
+            .trim()
+            .toLowerCase();
+
+        const telefono =
+            document
+            .getElementById("telefono")
+            .value
+            .trim();
+
+        const email =
+            document
+            .getElementById("email")
+            .value
+            .trim();
+
+
+        const {
+            data: restaurant,
+            error
+        } = await supabase
+            .from("restaurants")
+            .insert({
+
+                tenant_id: tenantId,
+
+                nombre,
+
+                slug,
+
+                telefono: telefono || null,
+
+                email: email || null
+
+            })
+            .select()
+            .single();
+
+
+        if (error) {
+
+            mensaje.textContent =
+                error.message;
+
+            return;
+
+        }
+
+
+        // Crear branding inicial
+
+        const {
+            error: brandingError
+        } = await supabase
+            .from("branding")
+            .insert({
+
+                restaurant_id:
+                    restaurant.id,
+
+                nombre_marca:
+                    restaurant.nombre,
+
+                tema: "light",
+
+                activo: true
+
+            });
+
+
+        if (brandingError) {
+
+            console.error(
+                brandingError
+            );
+
+        }
+
+
+        mensaje.textContent =
+            "Sucursal creada correctamente.";
+
+        form.reset();
+
+        await cargarRestaurantes();
+
+    }
+);
+
+
+// =====================================================
+// LOGOUT
+// =====================================================
+
+document
+    .getElementById("logout")
+    .addEventListener(
+        "click",
+        async () => {
+
+            await supabase.auth.signOut();
+
+            window.location.href =
+                "../index.html";
+
+        }
+    );
+
+
+init();
+
+</script>
+
+</body>
+</html>

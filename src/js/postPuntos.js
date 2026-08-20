@@ -9,9 +9,7 @@ export const setupPosts = async (data, email, telefono) => {
   if (!postList) return;
 
   try {
-    // 1. Obtener configuración desde Firebase
-    //const { welcomeMessage, restaurantName } = await getConfig();
-    //renderWelcomeMessage(welcomeMessage, restaurantName);
+
     // 2. Buscar cliente en Firebase o Supabase
     const cliente = await findClient(data, email, telefono);
 
