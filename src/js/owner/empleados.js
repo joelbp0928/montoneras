@@ -63,7 +63,7 @@ export async function iniciarModuloEmpleados(idTenant, datosTenant) {
 // CARGAR SUCURSALES DISPONIBLES
 // =====================================================
 
-async function cargarSucursalesEmpleado() {
+export async function cargarSucursalesEmpleado() {
     employeeBranches.innerHTML = `
 		<div class="text-secondary">
 			<span class="spinner-border spinner-border-sm me-2"></span>

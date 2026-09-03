@@ -1,5 +1,5 @@
 import { supabase } from "../config-supabase.js";
-import { iniciarModuloEmpleados } from "./empleados.js";
+import { iniciarModuloEmpleados, cargarSucursalesEmpleado } from "./empleados.js";
 
 // =====================================================
 // ESTADO
@@ -689,9 +689,9 @@ branchForm.addEventListener(
             "success"
         );
 
-
         branchForm.reset();
 
+        await Promise.all([cargarSucursales(), cargarSucursalesEmpleado()]);
 
         await cargarSucursales();
     }

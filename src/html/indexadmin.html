@@ -21,267 +21,426 @@
     />
   </head>
   <body>
-    <div class="background-image"></div>
-
-    <!-- 🔹 Logo -->
-    <div class="logo-container">
-      <a href="./indexadmin.html">
-        <img src="../img/LOGO MONTO.png" alt="Logo" class="logo" />
-      </a>
-    </div>
-
-    <div>
-      <div class="row">
-        <div class="col-md-6 offset-md-3">
-          <ul class="list-group posts"></ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- 🔹 Botón de Configuración (Usando Bootstrap) -->
-    <button
-      class="btn btn-primary config-button"
-      data-bs-toggle="modal"
-      data-bs-target="#configModal"
+    <section
+      id="authLoading"
+      class="min-vh-100 d-flex align-items-center justify-content-center"
     >
-      <i class="fas fa-cog"></i>
-    </button>
+      <div class="text-center">
+        <div class="spinner-border text-primary mb-3" role="status"></div>
+        <p class="text-muted">Verificando acceso...</p>
+      </div>
+    </section>
 
-    <!-- 🔹 Contenedor Principal -->
-    <div class="container text-center">
-      <h1 class="admin-title">Modo Administrador</h1>
+    <section
+      id="staffLoginSection"
+      class="min-vh-100 align-items-center justify-content-center"
+      hidden
+    >
+      <div
+        class="card border-0 shadow p-4"
+        style="width: 100%; max-width: 430px"
+      >
+        <div class="text-center mb-4">
+          <i class="fas fa-store fa-2x mb-3 text-primary"></i>
+          <h1 class="h3">Acceso al sistema</h1>
+          <p class="text-muted mb-0">
+            Ingresa con tu cuenta de propietario o empleado.
+          </p>
+        </div>
 
-      <!-- 🔹 Contenedor de botones -->
-      <div class="button-group">
-        <!-- 🔹 Registrar Cliente y Buscar Cliente en la misma línea -->
-        <div class="button-row">
-          <a href="registrarAdmin.html" class="admin-button"
-            >Registrar Cliente</a
+        <form id="staffLoginForm">
+          <div class="mb-3">
+            <label for="staffEmail" class="form-label"
+              >Correo electrónico</label
+            >
+            <input
+              type="email"
+              id="staffEmail"
+              class="form-control"
+              autocomplete="email"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label for="staffPassword" class="form-label">Contraseña</label>
+            <input
+              type="password"
+              id="staffPassword"
+              class="form-control"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            id="staffLoginButton"
+            class="btn btn-primary w-100"
           >
-          <a href="buscarAdmin.html" class="admin-button">Buscar Cliente</a>
-        </div>
+            <i class="fas fa-right-to-bracket me-2"></i>
+            Iniciar sesión
+          </button>
+        </form>
 
-        <!-- 🔹 Inventario en una fila centrada -->
-        <div class="inventory-container">
-          <a href="stock.html" class="admin-button">Inventario</a>
-        </div>
+        <div id="staffLoginMessage" class="mt-3"></div>
+      </div>
+    </section>
+    <section id="adminApp" hidden>
+      <div class="background-image"></div>
 
-        <!-- 🔹 Cerrar sesión centrado -->
-        <div class="logout-container">
-          <a href="#" class="logout-button" id="logout">Cerrar Sesión</a>
+      <!-- 🔹 Logo -->
+      <div class="logo-container">
+        <a href="./indexadmin.html">
+          <img src="../img/LOGO MONTO.png" alt="Logo" class="logo" />
+        </a>
+      </div>
+
+      <div>
+        <div class="row">
+          <div class="col-md-6 offset-md-3">
+            <ul class="list-group posts"></ul>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- 🔹 Modal de Configuración Mejorado -->
-    <div id="configModal" class="modal fade" tabindex="-1">
-      <div class="modal-dialog modal-lg">
-        
-        <!-- Ajustamos el tamaño a "lg" para mejor visualización -->
-        <div class="modal-content">
+      <!-- 🔹 Botón de Configuración (Usando Bootstrap) -->
+      <button
+        class="btn btn-primary config-button"
+        data-bs-toggle="modal"
+        data-bs-target="#configModal"
+      >
+        <i class="fas fa-cog"></i>
+      </button>
+
+      <!-- 🔹 Contenedor Principal -->
+      <div class="container text-center">
+        <h1 class="admin-title">Modo Administrador</h1>
+
+        <!-- 🔹 Contenedor de botones -->
+        <div class="button-group">
+          <!-- 🔹 Registrar Cliente y Buscar Cliente en la misma línea -->
+          <div class="button-row">
+            <a href="registrarAdmin.html" class="admin-button"
+              >Registrar Cliente</a
+            >
+            <a href="buscarAdmin.html" class="admin-button">Buscar Cliente</a>
+          </div>
+
+          <!-- 🔹 Inventario en una fila centrada -->
+          <div class="inventory-container">
+            <a href="stock.html" class="admin-button">Inventario</a>
+          </div>
+
+          <!-- 🔹 Cerrar sesión centrado -->
+          <div class="logout-container">
+            <a href="#" class="logout-button" id="logout">Cerrar Sesión</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🔹 Modal de Configuración Mejorado -->
+      <div id="configModal" class="modal fade" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+          <!-- Ajustamos el tamaño a "lg" para mejor visualización -->
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2 class="modal-title">Configuración</h2>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+              ></button>
+            </div>
+
+            <div class="modal-body">
+              <!-- 🔹 Tabs de Configuración -->
+              <ul class="nav nav-tabs" id="configTabs">
+                <li class="nav-item">
+                  <a
+                    class="nav-link active"
+                    data-bs-toggle="tab"
+                    href="#generalConfig"
+                    >General</a
+                  >
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" data-bs-toggle="tab" href="#menuConfig"
+                    >Menú</a
+                  >
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" data-bs-toggle="tab" href="#pointsConfig"
+                    >Recompensa</a
+                  >
+                </li>
+              </ul>
+
+              <!-- 🔹 Contenido de las Pestañas -->
+              <div class="tab-content mt-4">
+                <!-- 📑 Configuración General -->
+                <div id="generalConfig" class="tab-pane fade show active">
+                  <label for="restaurantName">Nombre del Restaurante:</label>
+                  <input
+                    type="text"
+                    id="restaurantName"
+                    class="form-control"
+                    placeholder="Escribe el nombre"
+                  />
+                  <label for="welcomeMessage">Mensaje de Bienvenida:</label>
+                  <input
+                    type="text"
+                    id="welcomeMessage"
+                    class="form-control"
+                    placeholder="Escribe el mensaje de bienvenida"
+                  />
+
+                  <label for="logoUpload" class="mt-2">Subir Logo:</label>
+                  <input
+                    type="file"
+                    id="logoUpload"
+                    class="form-control"
+                    accept="image/*"
+                  />
+
+                  <label for="backgroundUpload" class="mt-2"
+                    >Subir Imagen de Fondo:</label
+                  >
+                  <input
+                    type="file"
+                    id="backgroundUpload"
+                    class="form-control"
+                    accept="image/*"
+                  />
+                </div>
+
+                <!-- 🍽️ Configuración del Menú -->
+                <div id="menuConfig" class="tab-pane fade">
+                  <h5>Imágenes del Menú</h5>
+                  <p class="text-muted">
+                    Arrastra y suelta las imágenes para cambiar el orden.
+                  </p>
+
+                  <!-- 🔹 Contenedor dinámico de imágenes -->
+                  <div id="menuImagesContainer" class="menu-images-container">
+                    <!-- 📌 Imágenes del menú se cargarán aquí dinámicamente -->
+                  </div>
+
+                  <!-- 🔹 Botón para agregar imágenes (Máximo 10) -->
+                  <div id="addImageContainer" class="add-image">
+                    <input
+                      type="file"
+                      id="menuImageInput"
+                      accept="image/*"
+                      hidden
+                    />
+                    <button id="addImageButton" class="btn btn-outline-primary">
+                      <i class="fas fa-plus"></i> Agregar Imagen
+                    </button>
+                  </div>
+                </div>
+                <!-- 🔹 Configuración del Sistema de Recompensas -->
+                <div id="pointsConfig" class="tab-pane fade">
+                  <h5 class="my-3">Configuración del Sistema de Recompensas</h5>
+
+                  <p class="text-muted">
+                    Define cómo los clientes acumulan puntos. Puedes elegir
+                    entre recibir recompensas por cada compra o por cada visita
+                    al local.
+                  </p>
+
+                  <!-- 🔹 Configuración en línea -->
+                  <div class="reward-settings">
+                    <!-- Tipo de recompensa -->
+                    <div>
+                      <label for="pointsType"
+                        ><strong>Tipo de recompensa:</strong></label
+                      >
+                      <select id="pointsType" class="form-select">
+                        <option value="purchase">💰 Por compra</option>
+                        <option value="visit">🚶 Por visita</option>
+                      </select>
+                    </div>
+
+                    <!-- Campo de porcentaje (Por compra) -->
+                    <div id="purchasePointsField" class="align-items-center">
+                      <label for="pointsPercentage" class="d-none"
+                        ><strong>%</strong></label
+                      >
+                      <input
+                        type="number"
+                        id="pointsPercentage"
+                        class="form-control reward-input"
+                        value="10"
+                        min="1"
+                        max="100"
+                      />
+                      <span class="input-group-text"
+                        ><i class="fas fa-percentage"></i
+                      ></span>
+                      <!-- Mostrar el ícono de porcentaje -->
+                    </div>
+
+                    <!-- Campo de visitas (Por visita) -->
+                    <div id="visitPointsField" class="align-items-center">
+                      <label for="visitsRequired" class="input-group-text"
+                        ><strong>🏆</strong></label
+                      >
+                      <input
+                        type="number"
+                        id="visitsRequired"
+                        class="form-control reward-input"
+                        value="5"
+                        min="1"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- 🔹 Mensajes de ayuda -->
+                  <div>
+                    <small id="purchaseHelp" class="reward-help">
+                      Ejemplo: Si el cliente gasta $100 y el porcentaje es 10%,
+                      gana 10 puntos.
+                    </small>
+                    <small
+                      id="visitHelp"
+                      class="reward-help"
+                      style="display: none"
+                    >
+                      Ejemplo: Si eliges 5, el cliente recibirá una recompensa
+                      después de 5 visitas.
+                    </small>
+                  </div>
+
+                  <!-- ℹ️ Recomendación general -->
+                  <p class="text-muted mt-3">
+                    Puedes cambiar entre los dos sistemas de recompensas según
+                    las necesidades de tu negocio.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <!-- 🔹 Mensaje de carga (inicialmente oculto) -->
+            <p
+              id="savingMessage"
+              style="display: none; color: blue; text-align: center"
+            >
+              Guardando configuración, por favor espera...
+            </p>
+            <div class="modal-footer">
+              <button id="saveConfig" class="btn btn-primary">
+                Guardar Cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🔹 Loader Mejorado -->
+      <div id="loading">
+        <div class="spinner"></div>
+        <p>Cargando configuración...</p>
+      </div>
+
+      <!-- 🔹 Pie de Página -->
+      <footer>
+        <p>Sistema de Puntos - Mr Donut | Todos los derechos reservados</p>
+      </footer>
+    </section>
+    <div
+      class="modal fade"
+      id="restaurantSelectorModal"
+      tabindex="-1"
+      data-bs-backdrop="static"
+      data-bs-keyboard="false"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
           <div class="modal-header">
-            <h2 class="modal-title">Configuración</h2>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
+            <h2 class="modal-title fs-5">
+              <i class="fas fa-store me-2"></i>
+              Selecciona una sucursal
+            </h2>
           </div>
 
           <div class="modal-body">
-            <!-- 🔹 Tabs de Configuración -->
-            <ul class="nav nav-tabs" id="configTabs">
-              <li class="nav-item">
-                <a
-                  class="nav-link active"
-                  data-bs-toggle="tab"
-                  href="#generalConfig"
-                  >General</a
-                >
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#menuConfig"
-                  >Menú</a
-                >
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#pointsConfig"
-                  >Recompensa</a
-                >
-              </li>
-            </ul>
+            <p class="text-muted">
+              Tienes acceso a varias sucursales. Selecciona dónde deseas
+              trabajar.
+            </p>
 
-            <!-- 🔹 Contenido de las Pestañas -->
-            <div class="tab-content mt-4">
-              <!-- 📑 Configuración General -->
-              <div id="generalConfig" class="tab-pane fade show active">
-                <label for="restaurantName">Nombre del Restaurante:</label>
-                <input
-                  type="text"
-                  id="restaurantName"
-                  class="form-control"
-                  placeholder="Escribe el nombre"
-                />
-                <label for="welcomeMessage">Mensaje de Bienvenida:</label>
-                <input
-                  type="text"
-                  id="welcomeMessage"
-                  class="form-control"
-                  placeholder="Escribe el mensaje de bienvenida"
-                />
-
-                <label for="logoUpload" class="mt-2">Subir Logo:</label>
-                <input
-                  type="file"
-                  id="logoUpload"
-                  class="form-control"
-                  accept="image/*"
-                />
-
-                <label for="backgroundUpload" class="mt-2"
-                  >Subir Imagen de Fondo:</label
-                >
-                <input
-                  type="file"
-                  id="backgroundUpload"
-                  class="form-control"
-                  accept="image/*"
-                />
-              </div>
-
-              <!-- 🍽️ Configuración del Menú -->
-              <div id="menuConfig" class="tab-pane fade">
-                <h5>Imágenes del Menú</h5>
-                <p class="text-muted">
-                  Arrastra y suelta las imágenes para cambiar el orden.
-                </p>
-
-                <!-- 🔹 Contenedor dinámico de imágenes -->
-                <div id="menuImagesContainer" class="menu-images-container">
-                  <!-- 📌 Imágenes del menú se cargarán aquí dinámicamente -->
-                </div>
-
-                <!-- 🔹 Botón para agregar imágenes (Máximo 10) -->
-                <div id="addImageContainer" class="add-image">
-                  <input
-                    type="file"
-                    id="menuImageInput"
-                    accept="image/*"
-                    hidden
-                  />
-                  <button id="addImageButton" class="btn btn-outline-primary">
-                    <i class="fas fa-plus"></i> Agregar Imagen
-                  </button>
-                </div>
-              </div>
-              <!-- 🔹 Configuración del Sistema de Recompensas -->
-              <div id="pointsConfig" class="tab-pane fade">
-                <h5 class="my-3">Configuración del Sistema de Recompensas</h5>
-
-                <p class="text-muted">
-                  Define cómo los clientes acumulan puntos. Puedes elegir entre
-                  recibir recompensas por cada compra o por cada visita al
-                  local.
-                </p>
-
-                <!-- 🔹 Configuración en línea -->
-                <div class="reward-settings">
-                  <!-- Tipo de recompensa -->
-                  <div>
-                    <label for="pointsType"
-                      ><strong>Tipo de recompensa:</strong></label
-                    >
-                    <select id="pointsType" class="form-select">
-                      <option value="purchase">💰 Por compra</option>
-                      <option value="visit">🚶 Por visita</option>
-                    </select>
-                  </div>
-
-                  <!-- Campo de porcentaje (Por compra) -->
-                  <div id="purchasePointsField" class="align-items-center">
-                    <label for="pointsPercentage" class="d-none"
-                      ><strong>%</strong></label
-                    >
-                    <input
-                      type="number"
-                      id="pointsPercentage"
-                      class="form-control reward-input"
-                      value="10"
-                      min="1"
-                      max="100"
-                    />
-                    <span class="input-group-text"
-                      ><i class="fas fa-percentage"></i
-                    ></span>
-                    <!-- Mostrar el ícono de porcentaje -->
-                  </div>
-
-                  <!-- Campo de visitas (Por visita) -->
-                  <div id="visitPointsField" class="align-items-center">
-                    <label for="visitsRequired" class="input-group-text"
-                      ><strong>🏆</strong></label
-                    >
-                    <input
-                      type="number"
-                      id="visitsRequired"
-                      class="form-control reward-input"
-                      value="5"
-                      min="1"
-                    />
-                  </div>
-                </div>
-
-                <!-- 🔹 Mensajes de ayuda -->
-                <div>
-                  <small id="purchaseHelp" class="reward-help">
-                    Ejemplo: Si el cliente gasta $100 y el porcentaje es 10%,
-                    gana 10 puntos.
-                  </small>
-                  <small
-                    id="visitHelp"
-                    class="reward-help"
-                    style="display: none"
-                  >
-                    Ejemplo: Si eliges 5, el cliente recibirá una recompensa
-                    después de 5 visitas.
-                  </small>
-                </div>
-
-                <!-- ℹ️ Recomendación general -->
-                <p class="text-muted mt-3">
-                  Puedes cambiar entre los dos sistemas de recompensas según las
-                  necesidades de tu negocio.
-                </p>
-              </div>
-            </div>
-          </div>
-          <!-- 🔹 Mensaje de carga (inicialmente oculto) -->
-          <p
-            id="savingMessage"
-            style="display: none; color: blue; text-align: center"
-          >
-            Guardando configuración, por favor espera...
-          </p>
-          <div class="modal-footer">
-            <button id="saveConfig" class="btn btn-primary">
-              Guardar Cambios
-            </button>
+            <div id="restaurantOptions" class="d-grid gap-2"></div>
           </div>
         </div>
       </div>
     </div>
+    <div
+      class="modal fade"
+      id="changePasswordModal"
+      tabindex="-1"
+      data-bs-backdrop="static"
+      data-bs-keyboard="false"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header">
+            <h2 class="modal-title fs-5">
+              <i class="fas fa-key me-2"></i>
+              Crea tu nueva contraseña
+            </h2>
+          </div>
 
-    <!-- 🔹 Loader Mejorado -->
-    <div id="loading">
-      <div class="spinner"></div>
-      <p>Cargando configuración...</p>
+          <form id="changePasswordForm">
+            <div class="modal-body">
+              <p class="text-muted">
+                Estás usando una contraseña temporal. Debes reemplazarla antes
+                de continuar.
+              </p>
+
+              <div class="mb-3">
+                <label for="newPassword" class="form-label">
+                  Nueva contraseña
+                </label>
+
+                <input
+                  type="password"
+                  id="newPassword"
+                  class="form-control"
+                  minlength="8"
+                  required
+                />
+              </div>
+
+              <div>
+                <label for="confirmPassword" class="form-label">
+                  Confirmar contraseña
+                </label>
+
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  class="form-control"
+                  minlength="8"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button
+                type="submit"
+                id="changePasswordButton"
+                class="btn btn-primary"
+              >
+                Guardar contraseña
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-
-    <!-- 🔹 Pie de Página -->
-    <footer>
-      <p>Sistema de Puntos - Mr Donut | Todos los derechos reservados</p>
-    </footer>
-
     <script
       type="text/javascript"
       src="https://cdn.jsdelivr.net/npm/toastify-js"
