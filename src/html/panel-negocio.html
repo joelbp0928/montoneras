@@ -80,181 +80,326 @@
     <!-- ===================================================== -->
     <!-- PANEL DEL NEGOCIO -->
     <!-- ===================================================== -->
-
+    <!-- NAVBAR -->
     <section id="ownerSection" class="owner-section" hidden>
-      <!-- NAVBAR -->
+      <div class="app-shell">
+        <!-- ===================================================== -->
+        <!-- SIDEBAR -->
+        <!-- ===================================================== -->
 
-      <nav class="navbar bg-white border-bottom">
-        <div class="container">
-          <span class="navbar-brand fw-bold">
-            <i class="bi bi-shop me-2"></i>
+        <aside class="sidebar">
+          <div class="sidebar-brand">
+            <div class="software-logo">
+              <i class="bi bi-grid-fill"></i>
+            </div>
 
-            <span id="tenantTitle"> Panel de negocio </span>
-          </span>
+            <div>
+              <strong class="software-name"> Software POS </strong>
 
-          <div class="d-flex align-items-center gap-3">
-            <span class="user-session">
-              <i class="bi bi-person-circle"></i>
+              <small class="software-label"> Gestión empresarial </small>
+            </div>
+          </div>
 
-              <span id="userEmail"></span>
-            </span>
+          <nav class="sidebar-nav">
+            <button
+              type="button"
+              class="sidebar-link active"
+              data-section="dashboard"
+            >
+              <i class="bi bi-house-door"></i>
+              <span>Inicio</span>
+            </button>
+
+            <button type="button" class="sidebar-link" data-section="branches">
+              <i class="bi bi-buildings"></i>
+              <span>Sucursales</span>
+            </button>
+
+            <button type="button" class="sidebar-link" data-section="employees">
+              <i class="bi bi-people"></i>
+              <span>Empleados</span>
+            </button>
+
+            <button type="button" class="sidebar-link disabled">
+              <i class="bi bi-person-vcard"></i>
+              <span>Clientes</span>
+            </button>
+
+            <button type="button" class="sidebar-link disabled">
+              <i class="bi bi-star"></i>
+              <span>Puntos</span>
+            </button>
+
+            <button type="button" class="sidebar-link disabled">
+              <i class="bi bi-box-seam"></i>
+              <span>Productos</span>
+            </button>
+
+            <button type="button" class="sidebar-link disabled">
+              <i class="bi bi-receipt"></i>
+              <span>Ventas</span>
+            </button>
+
+            <button type="button" class="sidebar-link disabled">
+              <i class="bi bi-bar-chart"></i>
+              <span>Reportes</span>
+            </button>
+          </nav>
+
+          <div class="sidebar-bottom">
+            <button type="button" class="sidebar-link disabled">
+              <i class="bi bi-gear"></i>
+              <span>Configuración</span>
+            </button>
 
             <button
-              id="logoutBtn"
-              class="btn btn-outline-danger btn-sm"
               type="button"
+              id="logoutBtn"
+              class="sidebar-link sidebar-logout"
             >
               <i class="bi bi-box-arrow-right"></i>
-
-              Cerrar sesión
+              <span>Cerrar sesión</span>
             </button>
           </div>
-        </div>
-      </nav>
+        </aside>
 
-      <!-- CONTENIDO -->
+        <!-- ===================================================== -->
+        <!-- CONTENIDO -->
+        <!-- ===================================================== -->
 
-      <main class="container py-4">
-        <div class="mb-4">
-          <h1 class="h3">Administración del negocio</h1>
+        <div class="app-content">
+          <!-- TOPBAR -->
 
-          <p id="tenantInfo" class="text-secondary mb-0"></p>
-        </div>
+          <header class="topbar">
+            <div>
+              <h1 id="tenantTitle" class="topbar-title">Panel de negocio</h1>
 
-        <div class="row g-4">
-          <!-- ========================================= -->
-          <!-- AGREGAR SUCURSAL -->
-          <!-- ========================================= -->
+              <p id="tenantInfo" class="topbar-subtitle mb-0"></p>
+            </div>
 
-          <div class="col-lg-5">
-            <div class="card shadow-sm border-0">
-              <div class="card-body">
-                <h2 class="h5 mb-4">
-                  <i class="bi bi-plus-circle me-2"></i>
+            <div class="topbar-user">
+              <div class="user-avatar">
+                <i class="bi bi-person"></i>
+              </div>
 
-                  Agregar sucursal
-                </h2>
+              <div class="user-info">
+                <span id="userEmail"></span>
+                <small>Propietario</small>
+              </div>
+            </div>
+          </header>
 
-                <form id="branchForm">
-                  <div>
-                    <label for="branchName" class="form-label"> Nombre </label>
+          <main class="content-area">
+            <!-- ================================================ -->
+            <!-- DASHBOARD -->
+            <!-- ================================================ -->
 
-                    <input
-                      id="branchName"
-                      class="form-control"
-                      placeholder="Ej. Mr Donut Polanco"
-                      required
-                    />
+            <section id="dashboardSection" class="panel-view">
+              <div class="page-header">
+                <div>
+                  <h2>Administración</h2>
+                  <p>Gestiona las operaciones principales de tu negocio.</p>
+                </div>
+              </div>
+
+              <div class="stats-grid">
+                <div class="stat-card">
+                  <div class="stat-icon">
+                    <i class="bi bi-buildings"></i>
                   </div>
 
                   <div>
-                    <label for="branchSlug" class="form-label"> Slug </label>
+                    <span class="stat-label"> Sucursales </span>
 
-                    <input
-                      id="branchSlug"
-                      class="form-control"
-                      placeholder="Ej. polanco"
-                      required
-                    />
+                    <strong class="stat-value" id="branchCount"> -- </strong>
+                  </div>
+                </div>
 
-                    <div class="form-text">
-                      Identificador único de la sucursal.
+                <div class="stat-card">
+                  <div class="stat-icon">
+                    <i class="bi bi-people"></i>
+                  </div>
+
+                  <div>
+                    <span class="stat-label"> Empleados </span>
+
+                    <strong class="stat-value" id="employeeCount"> -- </strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="dashboard-grid">
+                <div class="dashboard-card">
+                  <div class="dashboard-card-header">
+                    <div>
+                      <h3>Sucursales</h3>
+                      <p>Administra las ubicaciones de tu negocio.</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn btn-outline-primary btn-sm"
+                      data-go-section="branches"
+                    >
+                      Ver sucursales
+                    </button>
+                  </div>
+                </div>
+
+                <div class="dashboard-card">
+                  <div class="dashboard-card-header">
+                    <div>
+                      <h3>Empleados</h3>
+                      <p>Gestiona roles y accesos del personal.</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn btn-outline-primary btn-sm"
+                      data-go-section="employees"
+                    >
+                      Ver empleados
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ================================================ -->
+            <!-- SUCURSALES -->
+            <!-- ================================================ -->
+
+            <section id="branchesSection" class="panel-view" hidden>
+              <div class="page-header">
+                <div>
+                  <h2>Sucursales</h2>
+                  <p>Crea y administra las sucursales del negocio.</p>
+                </div>
+              </div>
+
+              <div class="row g-4">
+                <div class="col-xl-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h3 class="section-card-title">
+                        <i class="bi bi-plus-circle"></i>
+                        Nueva sucursal
+                      </h3>
+
+                      <form id="branchForm">
+                        <div>
+                          <label for="branchName" class="form-label">
+                            Nombre
+                          </label>
+
+                          <input
+                            id="branchName"
+                            class="form-control"
+                            placeholder="Ej. Mr Donut Polanco"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label for="branchSlug" class="form-label">
+                            Slug
+                          </label>
+
+                          <input
+                            id="branchSlug"
+                            class="form-control"
+                            placeholder="Ej. polanco"
+                            required
+                          />
+
+                          <div class="form-text">
+                            Identificador único de la sucursal.
+                          </div>
+                        </div>
+
+                        <div>
+                          <label for="branchPhone" class="form-label">
+                            Teléfono
+                          </label>
+
+                          <input
+                            id="branchPhone"
+                            class="form-control"
+                            placeholder="Teléfono"
+                          />
+                        </div>
+
+                        <div>
+                          <label for="branchEmail" class="form-label">
+                            Email
+                          </label>
+
+                          <input
+                            id="branchEmail"
+                            type="email"
+                            class="form-control"
+                            placeholder="sucursal@negocio.com"
+                          />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                          <i class="bi bi-plus-lg"></i>
+                          Agregar sucursal
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-xl-8">
+                  <div class="section-title">
+                    <div>
+                      <h3>
+                        <i class="bi bi-buildings"></i>
+                        Mis sucursales
+                      </h3>
+
+                      <p>Sucursales registradas en tu empresa.</p>
                     </div>
                   </div>
 
-                  <div>
-                    <label for="branchPhone" class="form-label">
-                      Teléfono
-                    </label>
-
-                    <input
-                      id="branchPhone"
-                      class="form-control"
-                      placeholder="Teléfono"
-                    />
-                  </div>
-
-                  <div>
-                    <label for="branchEmail" class="form-label"> Email </label>
-
-                    <input
-                      id="branchEmail"
-                      type="email"
-                      class="form-control"
-                      placeholder="sucursal@negocio.com"
-                    />
-                  </div>
-
-                  <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-plus-lg"></i>
-
-                    Agregar sucursal
-                  </button>
-                </form>
+                  <div id="branches"></div>
+                </div>
               </div>
-            </div>
-          </div>
+            </section>
 
-          <!-- ========================================= -->
-          <!-- SUCURSALES -->
-          <!-- ========================================= -->
+            <!-- ================================================ -->
+            <!-- EMPLEADOS -->
+            <!-- ================================================ -->
 
-          <div class="col-lg-7">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h2 class="h5 mb-0">
-                <i class="bi bi-buildings me-2"></i>
+            <section id="employeesSection" class="panel-view" hidden>
+              <div class="page-header">
+                <div>
+                  <h2>Empleados</h2>
 
-                Mis sucursales
-              </h2>
-            </div>
+                  <p>Administra el personal, roles y sucursales asignadas.</p>
+                </div>
 
-            <div id="branches"></div>
-          </div>
+                <button
+                  type="button"
+                  id="newEmployeeBtn"
+                  class="btn btn-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#employeeModal"
+                >
+                  <i class="bi bi-person-plus"></i>
+                  Nuevo empleado
+                </button>
+              </div>
+
+              <div id="employeesList"></div>
+            </section>
+          </main>
         </div>
-
-        <hr class="my-5" />
-
-        <!-- ===================================================== -->
-        <!-- EMPLEADOS -->
-        <!-- ===================================================== -->
-
-        <section id="employeesSection">
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-              <h2 class="h4 mb-1">
-                <i class="bi bi-people me-2"></i>
-
-                Empleados
-              </h2>
-
-              <p class="text-secondary mb-0">
-                Administra el personal y sus sucursales asignadas.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              id="newEmployeeBtn"
-              class="btn btn-primary"
-              data-bs-toggle="modal"
-              data-bs-target="#employeeModal"
-            >
-              <i class="bi bi-person-plus"></i>
-
-              Nuevo empleado
-            </button>
-          </div>
-
-          <div id="employeesList"></div>
-        </section>
-
-        <!-- MENSAJES -->
-
-        <div id="mensaje" class="mt-4"></div>
-      </main>
+      </div>
 
       <!-- ===================================================== -->
-      <!-- MODAL NUEVO EMPLEADO -->
+      <!-- MODAL EMPLEADO -->
       <!-- ===================================================== -->
 
       <div
@@ -263,12 +408,11 @@
         tabindex="-1"
         aria-hidden="true"
       >
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
           <div class="modal-content">
             <div class="modal-header">
               <h2 class="modal-title fs-5">
                 <i class="bi bi-person-plus me-2"></i>
-
                 Nuevo empleado
               </h2>
 
@@ -302,10 +446,9 @@
                       class="form-control"
                       required
                     />
-                    
+
                     <div class="form-text">
-                      Puedes usar un correo real o modificar la sugerencia
-                      generada.
+                      Puedes usar un correo real o modificar la sugerencia.
                     </div>
                   </div>
 
@@ -356,8 +499,190 @@
                   class="btn btn-primary"
                 >
                   <i class="bi bi-person-check"></i>
-
                   Crear empleado
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <!-- MODAL EDITAR EMPLEADO -->
+      <div
+        class="modal fade"
+        id="editEmployeeModal"
+        tabindex="-1"
+        aria-labelledby="editEmployeeModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+            <form id="editEmployeeForm">
+              <div class="modal-header">
+                <div>
+                  <h2 class="modal-title fs-5" id="editEmployeeModalLabel">
+                    <i class="bi bi-person-gear me-2"></i>Editar empleado
+                  </h2>
+                  <p class="text-secondary small mb-0">
+                    Actualiza sus datos, rol y sucursales asignadas.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Cerrar"
+                ></button>
+              </div>
+
+              <div class="modal-body">
+                <input type="hidden" id="editEmployeeMemberId" />
+                <input type="hidden" id="editEmployeeUserId" />
+
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="editEmployeeName" class="form-label"
+                      >Nombre</label
+                    >
+                    <input
+                      id="editEmployeeName"
+                      class="form-control"
+                      required
+                    />
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="editEmployeePhone" class="form-label"
+                      >Teléfono</label
+                    >
+                    <input id="editEmployeePhone" class="form-control" />
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="editEmployeeRole" class="form-label">Rol</label>
+                    <select id="editEmployeeRole" class="form-select" required>
+                      <option value="manager">Gerente</option>
+                      <option value="supervisor">Supervisor</option>
+                      <option value="cashier">Cajero</option>
+                      <option value="staff">Empleado</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">Estado</label>
+                    <select id="editEmployeeActive" class="form-select">
+                      <option value="true">Activo</option>
+                      <option value="false">Inactivo</option>
+                    </select>
+                  </div>
+
+                  <div class="col-12">
+                    <label class="form-label">Sucursales asignadas</label>
+                    <div
+                      id="editEmployeeBranches"
+                      class="branch-selector"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button
+                  type="button"
+                  class="btn btn-light"
+                  data-bs-dismiss="modal"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  id="saveEmployeeBtn"
+                  class="btn btn-primary"
+                >
+                  <i class="bi bi-check-lg me-1"></i>Guardar cambios
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL EDITAR SUCURSAL -->
+      <div
+        class="modal fade"
+        id="editBranchModal"
+        tabindex="-1"
+        aria-labelledby="editBranchModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <form id="editBranchForm">
+              <div class="modal-header">
+                <div>
+                  <h2 class="modal-title fs-5" id="editBranchModalLabel">
+                    <i class="bi bi-pencil-square me-2"></i>Editar sucursal
+                  </h2>
+                  <p class="text-secondary small mb-0">
+                    Actualiza la información general de la sucursal.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Cerrar"
+                ></button>
+              </div>
+
+              <div class="modal-body">
+                <input type="hidden" id="editBranchId" />
+
+                <div class="mb-3">
+                  <label for="editBranchName" class="form-label">Nombre</label>
+                  <input id="editBranchName" class="form-control" required />
+                </div>
+
+                <div class="mb-3">
+                  <label for="editBranchSlug" class="form-label">Slug</label>
+                  <input id="editBranchSlug" class="form-control" required />
+                  <div class="form-text">
+                    Identificador único dentro del negocio.
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="editBranchPhone" class="form-label"
+                    >Teléfono</label
+                  >
+                  <input id="editBranchPhone" class="form-control" />
+                </div>
+
+                <div>
+                  <label for="editBranchEmail" class="form-label"
+                    >Correo electrónico</label
+                  >
+                  <input
+                    id="editBranchEmail"
+                    type="email"
+                    class="form-control"
+                  />
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button
+                  type="button"
+                  class="btn btn-light"
+                  data-bs-dismiss="modal"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  id="saveBranchBtn"
+                  class="btn btn-primary"
+                >
+                  <i class="bi bi-check-lg me-1"></i>Guardar cambios
                 </button>
               </div>
             </form>
@@ -373,7 +698,6 @@
     <script type="module" src="../js/owner/panel-negocio.js"></script>
 
     <!-- Bootstrap JS -->
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

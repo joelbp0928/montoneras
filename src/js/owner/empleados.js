@@ -63,7 +63,14 @@ export async function iniciarModuloEmpleados(idTenant, datosTenant) {
 // CARGAR SUCURSALES DISPONIBLES
 // =====================================================
 
-export async function cargarSucursalesEmpleado() {
+async function cargarSucursalesEmpleado() {
+    // =============================================
+    // PROTECCIÓN: TENANT NO INICIALIZADO
+    // =============================================
+
+    if (!tenantId) {
+        return;
+    }
     employeeBranches.innerHTML = `
 		<div class="text-secondary">
 			<span class="spinner-border spinner-border-sm me-2"></span>
@@ -977,24 +984,24 @@ async function mostrarCredenciales(result) {
 }
 
 async function copiarTexto(texto) {
-	try {
-		await navigator.clipboard.writeText(texto);
-	} catch {
-		const textarea =
-			document.createElement("textarea");
+    try {
+        await navigator.clipboard.writeText(texto);
+    } catch {
+        const textarea =
+            document.createElement("textarea");
 
-		textarea.value = texto;
-		textarea.style.position = "fixed";
-		textarea.style.opacity = "0";
+        textarea.value = texto;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
 
-		document.body.appendChild(textarea);
+        document.body.appendChild(textarea);
 
-		textarea.select();
+        textarea.select();
 
-		document.execCommand("copy");
+        document.execCommand("copy");
 
-		textarea.remove();
-	}
+        textarea.remove();
+    }
 }
 
 employeeName.addEventListener(
@@ -1031,13 +1038,42 @@ function normalizarUsuario(nombre) {
 }
 
 function mostrarToast(texto) {
-	Swal.fire({
-		toast: true,
-		position: "top-end",
-		icon: "success",
-		title: texto,
-		showConfirmButton: false,
-		timer: 1800,
-		timerProgressBar: true
-	});
+    Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "success",
+        title: texto,
+        showConfirmButton: false,
+        timer: 1800,
+        timerProgressBar: true
+    });
 }
+
+// =====================================================
+// EVENTOS DEL SISTEMA
+// =====================================================
+document.addEventListener(
+    "sucursales:actualizadas",
+    async event => {
+
+        // El módulo todavía no está inicializado
+        if (!tenantId) {
+            return;
+        }
+
+
+        // Evento inválido o sin contexto de tenant
+        if (!event.detail?.tenantId) {
+            return;
+        }
+
+
+        // El evento pertenece a otro tenant
+        if (event.detail.tenantId !== tenantId) {
+            return;
+        }
+
+
+        await cargarSucursalesEmpleado();
+    }
+);
