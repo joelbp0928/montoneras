@@ -1,5 +1,6 @@
 import { supabase } from "../config-supabase.js";
 import { mostrarError, mostrarAdvertencia, mostrarCargando, cerrarCargando, mostrarToast } from "../shared/alertas.js";
+import { escaparHTML } from "../shared/utils.js";
 
 // =====================================================
 // ESTADO DEL MÓDULO
@@ -881,24 +882,8 @@ function nombreRol(role) {
     return roles[role] ?? role;
 }
 
-
-// =====================================================
-// ESCAPAR HTML
-// =====================================================
-function escaparHTML(valor) {
-
-    const div =
-        document.createElement("div");
-
-    div.textContent =
-        valor ?? "";
-
-    return div.innerHTML;
-}
-
 // =====================================================
 // MOSTRAR CREDENCIALES TEMPORALES
-// =====================================================
 async function mostrarCredenciales(result) {
     if (!result.temporaryPassword) {
         await Swal.fire({

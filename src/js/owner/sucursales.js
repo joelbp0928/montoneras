@@ -1,4 +1,6 @@
 import { supabase } from "../config-supabase.js";
+import { escaparHTML } from "../shared/utils.js";
+import { mostrarError, mostrarAdvertencia, mostrarCargando, cerrarCargando } from "../shared/alertas.js";
 
 // =====================================================
 // ESTADO DEL MÓDULO
@@ -51,29 +53,18 @@ export async function iniciarModuloSucursales(idTenant) {
 
 // =====================================================
 // CONFIGURAR FORMULARIO
-// =====================================================
-
 function configurarFormularioSucursal() {
-
-    branchForm.addEventListener(
-        "submit",
-        crearSucursal
-    );
+    branchForm.addEventListener("submit", crearSucursal);
 }
 
 // =====================================================
 // CREAR SUCURSAL
-// =====================================================
-
 async function crearSucursal(event) {
 
     event.preventDefault();
 
-
     if (!tenantId) {
-
-        await mostrarError(
-            "Negocio no encontrado",
+        await mostrarError("Negocio no encontrado",
             "No pudimos identificar el negocio."
         );
 
@@ -81,25 +72,12 @@ async function crearSucursal(event) {
     }
 
 
-    const nombre =
-        branchName.value.trim();
-
-    const slug =
-        normalizarSlug(
-            branchSlug.value
-        );
-
-    const telefono =
-        branchPhone.value.trim();
-
-    const email =
-        branchEmail.value
-            .trim()
-            .toLowerCase();
-
+    const nombre = branchName.value.trim();
+    const slug = normalizarSlug(branchSlug.value);
+    const telefono = branchPhone.value.trim();
+    const email = branchEmail.value.trim().toLowerCase();
 
     if (!nombre || !slug) {
-
         await mostrarAdvertencia(
             "Información incompleta",
             "El nombre y el identificador de la sucursal son obligatorios."
@@ -111,16 +89,13 @@ async function crearSucursal(event) {
 
     // =====================================================
     // CONFIRMACIÓN
-    // =====================================================
+    const confirmacion = await Swal.fire({
 
-    const confirmacion =
-        await Swal.fire({
+        icon: "question",
 
-            icon: "question",
+        title: "¿Crear nueva sucursal?",
 
-            title: "¿Crear nueva sucursal?",
-
-            html: `
+        html: `
                 <div class="branch-confirmation">
 
                     <div class="branch-confirmation-row">
@@ -146,45 +121,27 @@ async function crearSucursal(event) {
                 </div>
             `,
 
-            showCancelButton: true,
+        showCancelButton: true,
+        confirmButtonText: '<i class="bi bi-plus-lg"></i> Crear sucursal',
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#2563eb",
+        reverseButtons: true
+    });
 
-            confirmButtonText:
-                '<i class="bi bi-plus-lg"></i> Crear sucursal',
-
-            cancelButtonText:
-                "Cancelar",
-
-            confirmButtonColor:
-                "#2563eb",
-
-            reverseButtons:
-                true
-        });
-
-
-    if (!confirmacion.isConfirmed) {
+    if (!confirmacion.isConfirmed)
         return;
-    }
-
 
     // =====================================================
     // VERIFICAR SLUG
-    // =====================================================
-
-    const {
-        data: existingBranch,
-        error: validationError
-    } =
-        await supabase
-            .from("restaurants")
-            .select("id")
-            .eq("tenant_id", tenantId)
-            .eq("slug", slug)
-            .maybeSingle();
+    const { data: existingBranch, error: validationError } = await supabase
+        .from("restaurants")
+        .select("id")
+        .eq("tenant_id", tenantId)
+        .eq("slug", slug)
+        .maybeSingle();
 
 
     if (validationError) {
-
         await mostrarError(
             "No pudimos validar la sucursal",
             "Ocurrió un problema verificando el identificador."
@@ -235,7 +192,7 @@ async function crearSucursal(event) {
 
     if (error) {
 
-        Swal.close();
+        cerrarCargando();;
 
 
         if (error.code === "23505") {
@@ -295,7 +252,7 @@ async function crearSucursal(event) {
 
     if (brandingError) {
 
-        Swal.close();
+        cerrarCargando();;
 
         await mostrarAdvertencia(
             "Sucursal creada parcialmente",
@@ -317,7 +274,7 @@ async function crearSucursal(event) {
 
     notificarSucursalesActualizadas();
 
-    Swal.close();
+    cerrarCargando();;
 
     // =====================================================
     // ÉXITO
@@ -402,20 +359,21 @@ async function cargarSucursales() {
         </div>
     `;
 
-    const { data, error } =
-        await supabase
-            .from("restaurants")
-            .select("*")
-            .eq(
-                "tenant_id",
-                tenantId
-            )
-            .order(
-                "created_at",
-                {
-                    ascending: true
-                }
-            );
+    const { data, error } = await supabase
+        .from("restaurants")
+        .select(`
+            id,
+            nombre,
+            slug,
+            telefono,
+            email,
+            activo,
+            created_at
+        `)
+        .eq("tenant_id", tenantId)
+        .order("created_at", {
+            ascending: true
+        });
 
     if (error) {
         console.error("Error cargando sucursales:", error);
@@ -430,11 +388,8 @@ async function cargarSucursales() {
 
         branches.innerHTML = `
             <div class="alert alert-light border">
-
                 <i class="bi bi-info-circle me-2"></i>
-
                 No hay sucursales registradas.
-
             </div>
         `;
 
@@ -458,19 +413,16 @@ async function cargarSucursales() {
                         gap-3
                     "
                 >
-
                     <div>
-
                         <strong>
-                            ${restaurante.nombre}
+                            ${escaparHTML(restaurante.nombre)}
                         </strong>
-
 
                         <p>
 
                             <i class="bi bi-envelope me-2"></i>
 
-                            ${restaurante.email ?? "Sin correo"}
+                            ${escaparHTML(restaurante.email ?? "Sin correo")}
 
                         </p>
 
@@ -479,7 +431,7 @@ async function cargarSucursales() {
 
                             <i class="bi bi-telephone me-2"></i>
 
-                            ${restaurante.telefono ?? "Sin teléfono"}
+                            ${escaparHTML(restaurante.telefono ?? "Sin teléfono")}
 
                         </p>
 
@@ -629,7 +581,7 @@ async function desactivarSucursal(
         );
 
 
-    Swal.close();
+    cerrarCargando();;
 
 
     if (error) {
@@ -724,27 +676,34 @@ async function abrirEditarSucursal(restaurantId) {
 
     mostrarCargando("Cargando sucursal...");
 
-    const { data, error } = await supabase
-        .from("restaurants")
-        .select("id,nombre,slug,telefono,email,activo")
-        .eq("id", restaurantId)
-        .eq("tenant_id", tenantId)
-        .maybeSingle();
+    try {
+        const { data, error } = await supabase
+            .from("restaurants")
+            .select("id,nombre,slug,telefono,email,activo")
+            .eq("id", restaurantId)
+            .eq("tenant_id", tenantId)
+            .maybeSingle();
 
-    Swal.close();
+        if (error) throw error;
+        if (!data) throw new Error("Sucursal no encontrada.");
 
-    if (error || !data) {
-        await mostrarError("No pudimos cargar la sucursal", "La información de la sucursal no está disponible.");
-        return;
+        editBranchId.value = data.id;
+        editBranchName.value = data.nombre ?? "";
+        editBranchSlug.value = data.slug ?? "";
+        editBranchPhone.value = data.telefono ?? "";
+        editBranchEmail.value = data.email ?? "";
+
+        cerrarCargando();
+        bootstrap.Modal.getOrCreateInstance(editBranchModal).show();
+
+    } catch {
+        cerrarCargando();
+
+        await mostrarError(
+            "No pudimos cargar la sucursal",
+            "La información de la sucursal no está disponible."
+        );
     }
-
-    editBranchId.value = data.id;
-    editBranchName.value = data.nombre ?? "";
-    editBranchSlug.value = data.slug ?? "";
-    editBranchPhone.value = data.telefono ?? "";
-    editBranchEmail.value = data.email ?? "";
-
-    bootstrap.Modal.getOrCreateInstance(editBranchModal).show();
 }
 
 editBranchForm.addEventListener("submit", guardarEdicionSucursal);
@@ -820,8 +779,16 @@ async function guardarEdicionSucursal(event) {
             confirmButtonText: "Continuar",
             confirmButtonColor: "#2563eb"
         });
-    } catch {
-        await mostrarError("No pudimos actualizar la sucursal", "Ocurrió un problema guardando los cambios.");
+    } catch (error) {
+        console.error(
+            "Error inesperado actualizando sucursal:",
+            error
+        );
+
+        await mostrarError(
+            "No pudimos actualizar la sucursal",
+            "Ocurrió un problema guardando los cambios."
+        );
     } finally {
         saveBranchBtn.disabled = false;
         saveBranchBtn.innerHTML = textoOriginal;
@@ -830,21 +797,13 @@ async function guardarEdicionSucursal(event) {
 
 // =====================================================
 // REACTIVAR SUCURSAL
-// =====================================================
+async function reactivarSucursal(restaurantId, nombre) {
+    const confirmacion = await Swal.fire({
+        icon: "question",
 
-async function reactivarSucursal(
-    restaurantId,
-    nombre
-) {
+        title: "¿Reactivar sucursal?",
 
-    const confirmacion =
-        await Swal.fire({
-
-            icon: "question",
-
-            title: "¿Reactivar sucursal?",
-
-            html: `
+        html: `
                 <p>
                     Estás por reactivar:
                 </p>
@@ -864,103 +823,50 @@ async function reactivarSucursal(
                 </div>
             `,
 
-            showCancelButton: true,
+        showCancelButton: true,
+        confirmButtonText: '<i class="bi bi-arrow-clockwise"></i> Reactivar',
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#198754",
+        reverseButtons: true
+    });
 
-            confirmButtonText:
-                '<i class="bi bi-arrow-clockwise"></i> Reactivar',
-
-            cancelButtonText:
-                "Cancelar",
-
-            confirmButtonColor:
-                "#198754",
-
-            reverseButtons:
-                true
-        });
-
-
-    if (!confirmacion.isConfirmed) {
+    if (!confirmacion.isConfirmed)
         return;
-    }
 
+    mostrarCargando("Reactivando sucursal...");
 
-    mostrarCargando(
-        "Reactivando sucursal..."
+    const { error } = await supabase.rpc(
+        "reactivar_sucursal",
+        {
+            p_restaurant_id:
+                restaurantId
+        }
     );
 
-
-    const {
-        error
-    } =
-        await supabase.rpc(
-            "reactivar_sucursal",
-            {
-                p_restaurant_id:
-                    restaurantId
-            }
-        );
-
-
-    Swal.close();
-
+    cerrarCargando();
 
     if (error) {
-
-        if (
-            error.message?.includes(
-                "permisos"
-            )
-        ) {
-
-            await mostrarError(
-                "Sin permisos",
-                "Tu cuenta no tiene permisos para reactivar esta sucursal."
-            );
-
+        if (error.message?.includes("permisos")) {
+            await mostrarError("Sin permisos", "Tu cuenta no tiene permisos para reactivar esta sucursal.");
             return;
         }
-
-
-        if (
-            error.message?.includes(
-                "Sucursal no encontrada"
-            )
-        ) {
-
-            await mostrarError(
-                "Sucursal no encontrada",
-                "La sucursal ya no existe o no está disponible."
-            );
-
+        if (error.message?.includes("Sucursal no encontrada")) {
+            await mostrarError("Sucursal no encontrada", "La sucursal ya no existe o no está disponible.");
             return;
         }
-
-
-        await mostrarError(
-            "No pudimos reactivar la sucursal",
-            "Ocurrió un problema al realizar la operación."
-        );
-
+        await mostrarError("No pudimos reactivar la sucursal", "Ocurrió un problema al realizar la operación.");
         return;
     }
-
 
     // =============================================
     // ACTUALIZAR SUCURSALES
-    // =============================================
-
     await cargarSucursales();
-
 
     // Avisar al resto del sistema
     notificarSucursalesActualizadas();
 
-
     // =============================================
     // ÉXITO
-    // =============================================
-
     await Swal.fire({
 
         icon: "success",
@@ -989,59 +895,9 @@ async function reactivarSucursal(
     });
 }
 
-function mostrarError(titulo, mensaje) {
-
-    return Swal.fire({
-        icon: "error",
-        title: titulo,
-        text: mensaje,
-        confirmButtonText: "Entendido",
-        confirmButtonColor: "#2563eb"
-    });
-}
-
-
-function mostrarAdvertencia(titulo, mensaje) {
-
-    return Swal.fire({
-        icon: "warning",
-        title: titulo,
-        text: mensaje,
-        confirmButtonText: "Entendido",
-        confirmButtonColor: "#2563eb"
-    });
-}
-
-
-function mostrarCargando(titulo) {
-
-    Swal.fire({
-        title: titulo,
-        text: "Espera un momento.",
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showConfirmButton: false,
-
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-}
-
-
-function escaparHTML(valor) {
-
-    const div =
-        document.createElement("div");
-
-    div.textContent =
-        valor ?? "";
-
-    return div.innerHTML;
-}
-
+// =====================================================
+// UTILIDADES
 function normalizarSlug(valor) {
-
     return valor
         .trim()
         .toLowerCase()
@@ -1053,18 +909,10 @@ function normalizarSlug(valor) {
 
 // =====================================================
 // EVENTOS DEL MÓDULO
-// =====================================================
-
 function notificarSucursalesActualizadas() {
-
     document.dispatchEvent(
-        new CustomEvent(
-            "sucursales:actualizadas",
-            {
-                detail: {
-                    tenantId
-                }
-            }
-        )
+        new CustomEvent("sucursales:actualizadas", {
+            detail: { tenantId }
+        })
     );
 }
