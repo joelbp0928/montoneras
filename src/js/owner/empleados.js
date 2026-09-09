@@ -1,50 +1,35 @@
 import { supabase } from "../config-supabase.js";
-
+import { mostrarError, mostrarAdvertencia, mostrarCargando, cerrarCargando, mostrarToast } from "../shared/alertas.js";
 
 // =====================================================
 // ESTADO DEL MÓDULO
-// =====================================================
-
 let tenantId = null;
 let tenant = null;
 let sucursales = [];
 
 // =====================================================
 // DOM
-// =====================================================
-
-const employeeForm =
-    document.getElementById("employeeForm");
-
-const employeeName =
-    document.getElementById("employeeName");
-
-const employeeEmail =
-    document.getElementById("employeeEmail");
-
-const employeePhone =
-    document.getElementById("employeePhone");
-
-const employeeRole =
-    document.getElementById("employeeRole");
-
-const employeeBranches =
-    document.getElementById("employeeBranches");
-
-const employeesList =
-    document.getElementById("employeesList");
-
-const createEmployeeBtn =
-    document.getElementById("createEmployeeBtn");
-
-const employeeModal =
-    document.getElementById("employeeModal");
-
+const employeeForm = document.getElementById("employeeForm");
+const employeeName = document.getElementById("employeeName");
+const employeeEmail = document.getElementById("employeeEmail");
+const employeePhone = document.getElementById("employeePhone");
+const employeeRole = document.getElementById("employeeRole");
+const employeeBranches = document.getElementById("employeeBranches");
+const employeesList = document.getElementById("employeesList");
+const createEmployeeBtn = document.getElementById("createEmployeeBtn");
+const employeeModal = document.getElementById("employeeModal");
+const editEmployeeModal = document.getElementById("editEmployeeModal");
+const editEmployeeForm = document.getElementById("editEmployeeForm");
+const editEmployeeMemberId = document.getElementById("editEmployeeMemberId");
+const editEmployeeName = document.getElementById("editEmployeeName");
+const editEmployeePhone = document.getElementById("editEmployeePhone");
+const editEmployeeRole = document.getElementById("editEmployeeRole");
+const editEmployeeActive = document.getElementById("editEmployeeActive");
+const editEmployeeBranches = document.getElementById("editEmployeeBranches");
+const saveEmployeeBtn = document.getElementById("saveEmployeeBtn");
 
 // =====================================================
 // INICIALIZAR MÓDULO
-// =====================================================
-
 export async function iniciarModuloEmpleados(idTenant, datosTenant) {
     if (!idTenant) {
         console.error("No se recibió tenantId en empleados.js");
@@ -179,158 +164,111 @@ function renderSucursales() {
     });
 }
 
-
 // =====================================================
 // OBTENER SUCURSALES SELECCIONADAS
-// =====================================================
-
 function obtenerSucursalesSeleccionadas() {
-
-    return [
-        ...document.querySelectorAll(
-            ".employee-branch:checked"
-        )
-    ].map(
-        checkbox => checkbox.value
-    );
+    return [...employeeBranches.querySelectorAll(".employee-branch:checked")]
+        .map(({ value }) => value);
 }
-
 
 // =====================================================
 // CREAR EMPLEADO
-// =====================================================
+employeeForm?.addEventListener("submit", async event => {
+    event.preventDefault();
 
-employeeForm?.addEventListener(
-    "submit",
-    async event => {
+    const nombre = employeeName.value.trim();
+    const email = employeeEmail
+        .value
+        .trim()
+        .toLowerCase();
 
-        event.preventDefault();
+    const telefono = employeePhone.value.trim();
+    const role = employeeRole.value;
+    const restaurantIds = obtenerSucursalesSeleccionadas();
 
+    // =============================================
+    // VALIDACIONES FRONTEND
+    if (!nombre || !email || !role) {
+        await mostrarAdvertencia("Información incompleta", "Completa los campos obligatorios.");
+        return;
+    }
 
-        const nombre =
-            employeeName.value.trim();
+    if (!restaurantIds.length) {
+        await mostrarAdvertencia("Información incompleta", "Completa los campos obligatorios.");
+        return;
+    }
 
-        const email =
-            employeeEmail
-                .value
-                .trim()
-                .toLowerCase();
+    createEmployeeBtn.disabled = true;
 
-        const telefono =
-            employeePhone.value.trim();
+    const textoOriginal = createEmployeeBtn.innerHTML;
 
-        const role =
-            employeeRole.value;
-
-        const restaurantIds =
-            obtenerSucursalesSeleccionadas();
-
-
-        // =============================================
-        // VALIDACIONES FRONTEND
-        // =============================================
-
-        if (
-            !nombre ||
-            !email ||
-            !role
-        ) {
-
-            mostrarError(
-                "Completa los campos obligatorios."
-            );
-
-            return;
-        }
-
-
-        if (!restaurantIds.length) {
-
-            mostrarError(
-                "Selecciona al menos una sucursal."
-            );
-
-            return;
-        }
-
-
-        createEmployeeBtn.disabled = true;
-
-        const textoOriginal =
-            createEmployeeBtn.innerHTML;
-
-
-        createEmployeeBtn.innerHTML = `
+    createEmployeeBtn.innerHTML = `
             <span
                 class="spinner-border spinner-border-sm me-2"
             ></span>
             Creando...
         `;
 
-
-        try {
-            const { data: result, error } = await supabase.functions.invoke(
-                "crear-empleado",
-                {
-                    body: {
-                        nombre,
-                        email,
-                        telefono: telefono || null,
-                        role,
-                        restaurantIds
-                    }
+    try {
+        const { data: result, error } = await supabase.functions.invoke(
+            "crear-empleado",
+            {
+                body: {
+                    nombre,
+                    email,
+                    telefono: telefono || null,
+                    role,
+                    restaurantIds
                 }
-            );
+            }
+        );
 
-            if (error) {
-                console.error("Error Edge Function:", error);
+        if (error) {
+            console.error("Error Edge Function:", error);
 
-                let detalle = null;
+            let detalle = null;
 
-                if (error.context) {
-                    try {
-                        detalle = await error.context.json();
-                    } catch {
-                        // La respuesta no contenía JSON
-                    }
+            if (error.context) {
+                try {
+                    detalle = await error.context.json();
+                } catch {
+                    // La respuesta no contenía JSON
                 }
-
-                throw new Error(
-                    detalle?.error ??
-                    error.message ??
-                    "No fue posible crear el empleado."
-                );
             }
 
-            if (!result?.success) {
-                throw new Error(
-                    result?.error ??
-                    "No fue posible crear el empleado."
-                );
-            }
-
-            employeeForm.reset();
-
-            const modal = bootstrap.Modal.getInstance(employeeModal);
-            modal?.hide();
-
-            await cargarEmpleados();
-
-            mostrarCredenciales(result);
-
-        } catch (error) {
-            console.error("Error creando empleado:", error);
-
-            mostrarError(
+            throw new Error(
+                detalle?.error ??
                 error.message ??
                 "No fue posible crear el empleado."
             );
-        } finally {
-            createEmployeeBtn.disabled = false;
-            createEmployeeBtn.innerHTML = textoOriginal;
         }
 
+        if (!result?.success) {
+            throw new Error(
+                result?.error ??
+                "No fue posible crear el empleado."
+            );
+        }
+
+        employeeForm.reset();
+
+        const modal = bootstrap.Modal.getInstance(employeeModal);
+        modal?.hide();
+
+        await cargarEmpleados();
+
+        mostrarCredenciales(result);
+
+    } catch (error) {
+        console.error("Error creando empleado:", error);
+        await mostrarError("No pudimos crear el empleado", error?.message ?? "No fue posible completar el registro.");
+
+    } finally {
+        createEmployeeBtn.disabled = false;
+        createEmployeeBtn.innerHTML = textoOriginal;
     }
+
+}
 );
 
 
@@ -609,14 +547,10 @@ function renderEmpleados(empleados) {
 
     employeesList.innerHTML = "";
 
-
     if (!empleados.length) {
-
         employeesList.innerHTML = `
             <div class="card border-0 shadow-sm">
-
                 <div class="card-body text-center py-5">
-
                     <i
                         class="
                             bi bi-people
@@ -624,23 +558,17 @@ function renderEmpleados(empleados) {
                             text-secondary
                         "
                     ></i>
-
                     <h3 class="h6 mt-3">
                         Aún no tienes empleados
                     </h3>
-
                     <p class="text-secondary mb-0">
                         Registra tu primer empleado para comenzar.
                     </p>
-
                 </div>
-
             </div>
         `;
-
         return;
     }
-
 
     empleados.forEach(
         empleado => {
@@ -651,60 +579,18 @@ function renderEmpleados(empleados) {
             card.className =
                 "card border-0 shadow-sm mb-3";
 
+            const asignacionesActivas = (empleado.restaurant_members ?? [])
+                .filter(item => item.activo);
 
-            const asignaciones =
-                empleado.restaurant_members ?? [];
-
-
-            const sucursalesHTML =
-                asignaciones.length
-
-                    ? asignaciones
-                        .filter(
-                            item => item.activo
-                        )
-                        .map(
-                            item => `
-                                <span
-                                    class="
-                                        badge
-                                        text-bg-light
-                                        border
-                                        me-1
-                                        mb-1
-                                    "
-                                >
-                                    <i
-                                        class="
-                                            bi bi-shop
-                                            me-1
-                                        "
-                                    ></i>
-
-                                    ${escaparHTML(
-                                item.restaurants?.nombre ??
-                                "Sucursal"
-                            )
-                                }
-
-                                    ·
-
-                                    ${nombreRol(
-                                    item.role
-                                )
-                                }
-
-                                </span>
-                            `
-                        )
-                        .join("")
-
-                    : `
-                        <span class="text-secondary">
-                            Sin sucursales asignadas
+            const sucursalesHTML = asignacionesActivas.length
+                ? asignacionesActivas.map(item => `
+                        <span class="badge text-bg-light border me-1 mb-1">
+                            <i class="bi bi-shop me-1"></i>
+                            ${escaparHTML(item.restaurants?.nombre ?? "Sucursal")}
+                            · ${escaparHTML(nombreRol(item.role))}
                         </span>
-                    `;
-
+                    `).join("")
+                : `<span class="text-secondary">Sin sucursales asignadas</span>`;
 
             card.innerHTML = `
 
@@ -786,43 +672,193 @@ function renderEmpleados(empleados) {
                             </div>
 
                         </div>
-
-
                         <button
                             type="button"
-                            class="
-                                btn
-                                btn-outline-primary
-                                btn-sm
-                            "
+                            class="btn btn-outline-primary btn-sm editar-empleado"
                             data-employee-id="${empleado.id}"
                         >
-
                             <i class="bi bi-pencil"></i>
-
                             Editar
-
                         </button>
-
                     </div>
-
                 </div>
             `;
-
-
             employeesList.appendChild(
                 card
             );
-
         }
     );
 }
 
+async function abrirEditarEmpleado(memberId) {
+    if (!tenantId || !memberId) return;
 
+    mostrarCargando("Cargando empleado...");
+
+    try {
+        const { data: member, error: memberError } = await supabase
+            .from("tenant_members")
+            .select("id,user_id,activo")
+            .eq("id", memberId)
+            .eq("tenant_id", tenantId)
+            .maybeSingle();
+
+        if (memberError) throw memberError;
+        if (!member) throw new Error("Empleado no encontrado.");
+
+        const [profileResult, assignmentsResult] = await Promise.all([
+            supabase
+                .from("profiles")
+                .select("id,nombre,telefono")
+                .eq("id", member.user_id)
+                .maybeSingle(),
+
+            supabase
+                .from("restaurant_members")
+                .select("restaurant_id,role,activo")
+                .eq("tenant_member_id", member.id)
+        ]);
+
+        if (profileResult.error) throw profileResult.error;
+        if (assignmentsResult.error) throw assignmentsResult.error;
+
+        const asignaciones = (assignmentsResult.data ?? []).filter(item => item.activo);
+
+        editEmployeeMemberId.value = member.id;
+        editEmployeeName.value = profileResult.data?.nombre ?? "";
+        editEmployeePhone.value = profileResult.data?.telefono ?? "";
+        editEmployeeRole.value = asignaciones[0]?.role ?? "staff";
+        editEmployeeActive.value = String(member.activo);
+
+        renderSucursalesEdicion(asignaciones);
+
+        cerrarCargando();
+        bootstrap.Modal.getOrCreateInstance(editEmployeeModal).show();
+
+    } catch (error) {
+        cerrarCargando();
+        await mostrarError(
+            "No pudimos cargar el empleado",
+            error?.message === "Empleado no encontrado."
+                ? error.message
+                : "Ocurrió un problema consultando su información."
+        );
+    }
+}
+
+function renderSucursalesEdicion(asignaciones = []) {
+    const seleccionadas = new Set(asignaciones.map(({ restaurant_id }) => restaurant_id));
+
+    if (!sucursales.length) {
+        editEmployeeBranches.innerHTML = `
+            <div class="alert alert-warning mb-0">
+                No existen sucursales activas.
+            </div>`;
+        return;
+    }
+
+    editEmployeeBranches.innerHTML = sucursales.map(sucursal => `
+        <div class="form-check border rounded p-3 mb-2">
+            <input
+                type="checkbox"
+                class="form-check-input ms-0 me-3 edit-employee-branch"
+                id="edit-branch-${sucursal.id}"
+                value="${sucursal.id}"
+                ${seleccionadas.has(sucursal.id) ? "checked" : ""}
+            >
+            <label class="form-check-label fw-medium" for="edit-branch-${sucursal.id}">
+                ${escaparHTML(sucursal.nombre)}
+            </label>
+        </div>
+    `).join("");
+}
+
+function obtenerSucursalesEdicion() {
+    return [...editEmployeeBranches.querySelectorAll(".edit-employee-branch:checked")]
+        .map(({ value }) => value);
+}
+
+employeesList.addEventListener("click", event => {
+    const editar = event.target.closest(".editar-empleado");
+    if (editar) abrirEditarEmpleado(editar.dataset.employeeId);
+});
+
+editEmployeeForm.addEventListener("submit", guardarEdicionEmpleado);
+
+async function guardarEdicionEmpleado(event) {
+    event.preventDefault();
+
+    const empleado = {
+        memberId: editEmployeeMemberId.value,
+        nombre: editEmployeeName.value.trim(),
+        telefono: editEmployeePhone.value.trim(),
+        role: editEmployeeRole.value,
+        activo: editEmployeeActive.value === "true",
+        restaurantIds: obtenerSucursalesEdicion()
+    };
+
+    if (!empleado.memberId || !empleado.nombre || !empleado.role) {
+        await mostrarAdvertencia(
+            "Información incompleta",
+            "Completa los campos obligatorios."
+        );
+        return;
+    }
+
+    if (empleado.activo && !empleado.restaurantIds.length) {
+        await mostrarAdvertencia(
+            "Sucursal requerida",
+            "Un empleado activo debe tener al menos una sucursal asignada."
+        );
+        return;
+    }
+
+    const contenidoOriginal = saveEmployeeBtn.innerHTML;
+
+    try {
+        saveEmployeeBtn.disabled = true;
+        saveEmployeeBtn.innerHTML = `
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Guardando...
+        `;
+
+        const { error } = await supabase.rpc("actualizar_empleado", {
+            p_tenant_member_id: empleado.memberId,
+            p_nombre: empleado.nombre,
+            p_telefono: empleado.telefono || null,
+            p_role: empleado.role,
+            p_restaurant_ids: empleado.restaurantIds,
+            p_activo: empleado.activo
+        });
+
+        if (error) throw error;
+
+        bootstrap.Modal.getInstance(editEmployeeModal)?.hide();
+
+        await cargarEmpleados();
+
+        await Swal.fire({
+            icon: "success",
+            title: "Empleado actualizado",
+            html: `
+                <strong>${escaparHTML(empleado.nombre)}</strong>
+                <p class="text-secondary mt-2 mb-0">
+                    Los cambios fueron guardados correctamente.
+                </p>
+            `,
+            confirmButtonText: "Continuar",
+            confirmButtonColor: "#2563eb"
+        });
+
+    } catch (error) {
+        await manejarErrorEdicionEmpleado(error);
+    } finally {
+        saveEmployeeBtn.disabled = false;
+        saveEmployeeBtn.innerHTML = contenidoOriginal;
+    }
+}
 // =====================================================
 // NOMBRE DE ROLES
-// =====================================================
-
 function nombreRol(role) {
 
     const roles = {
@@ -849,7 +885,6 @@ function nombreRol(role) {
 // =====================================================
 // ESCAPAR HTML
 // =====================================================
-
 function escaparHTML(valor) {
 
     const div =
@@ -861,24 +896,9 @@ function escaparHTML(valor) {
     return div.innerHTML;
 }
 
-
-// =====================================================
-// MENSAJE ERROR
-// =====================================================
-
-function mostrarError(texto) {
-    Swal.fire({
-        icon: "error",
-        title: "No se pudo completar la operación",
-        text: texto,
-        confirmButtonText: "Entendido"
-    });
-}
-
 // =====================================================
 // MOSTRAR CREDENCIALES TEMPORALES
 // =====================================================
-
 async function mostrarCredenciales(result) {
     if (!result.temporaryPassword) {
         await Swal.fire({
@@ -1037,18 +1057,6 @@ function normalizarUsuario(nombre) {
         .join(".");
 }
 
-function mostrarToast(texto) {
-    Swal.fire({
-        toast: true,
-        position: "top-end",
-        icon: "success",
-        title: texto,
-        showConfirmButton: false,
-        timer: 1800,
-        timerProgressBar: true
-    });
-}
-
 // =====================================================
 // EVENTOS DEL SISTEMA
 // =====================================================
@@ -1077,3 +1085,33 @@ document.addEventListener(
         await cargarSucursalesEmpleado();
     }
 );
+
+async function manejarErrorEdicionEmpleado(error) {
+    const mensaje = error?.message?.toLowerCase() ?? "";
+
+    if (mensaje.includes("permis")) {
+        return mostrarError(
+            "Sin permisos",
+            "Tu cuenta no tiene permisos para modificar este empleado."
+        );
+    }
+
+    if (mensaje.includes("sucursal")) {
+        return mostrarError(
+            "Sucursal no disponible",
+            "Una de las sucursales seleccionadas ya no está disponible."
+        );
+    }
+
+    if (mensaje.includes("rol")) {
+        return mostrarError(
+            "Rol no válido",
+            "El rol seleccionado no es válido."
+        );
+    }
+
+    return mostrarError(
+        "No pudimos actualizar el empleado",
+        "Ocurrió un problema guardando los cambios."
+    );
+}

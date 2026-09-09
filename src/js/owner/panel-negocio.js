@@ -1,17 +1,14 @@
 import { supabase } from "../config-supabase.js";
 import { iniciarModuloEmpleados } from "./empleados.js";
 import { iniciarModuloSucursales } from "./sucursales.js";
+import { mostrarError, mostrarAdvertencia, mostrarCargando, cerrarCargando, mostrarExito } from "../shared/alertas.js";
 
 // =====================================================
 // ESTADO
-// =====================================================
-
 let tenantId = null;
 
 // =====================================================
 // ELEMENTOS DOM
-// =====================================================
-
 const loginSection = document.getElementById("loginSection");
 const ownerSection = document.getElementById("ownerSection");
 const loginForm = document.getElementById("loginForm");
@@ -93,8 +90,6 @@ document
     });
 // =====================================================
 // VISTAS
-// =====================================================
-
 function mostrarLogin() {
 
     loginSection.hidden = false;
@@ -111,204 +106,82 @@ function mostrarPanel() {
 }
 
 // =====================================================
-// ALERTAS DEL SISTEMA
-// =====================================================
-
-function mostrarError(titulo, mensaje) {
-
-    return Swal.fire({
-        icon: "error",
-        title: titulo,
-        text: mensaje,
-        confirmButtonText: "Entendido",
-        confirmButtonColor: "#2563eb"
-    });
-}
-
-function mostrarAdvertencia(titulo, mensaje) {
-
-    return Swal.fire({
-        icon: "warning",
-        title: titulo,
-        text: mensaje,
-        confirmButtonText: "Entendido",
-        confirmButtonColor: "#2563eb"
-    });
-}
-
-function mostrarCargando(titulo = "Procesando...") {
-
-    Swal.fire({
-        title: titulo,
-        text: "Espera un momento.",
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showConfirmButton: false,
-
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-}
-
-function mostrarExito(mensaje) {
-
-    return Swal.fire({
-        icon: "success",
-        title: mensaje,
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 2500,
-        timerProgressBar: true
-    });
-}
-
-// =====================================================
 // VERIFICAR SESIÓN
-// =====================================================
-
 async function verificarSesion() {
 
-    console.log(
-        "Verificando sesión..."
-    );
+    console.log("Verificando sesión...");
 
+    const { data: { session }, error } = await supabase.auth.getSession();
 
-    const {
-        data: { session },
-        error
-    } =
-        await supabase.auth
-            .getSession();
-
-
-    if (
-        error ||
-        !session?.user
-    ) {
-
-        console.log(
-            "No existe sesión."
-        );
-
+    if (error || !session?.user) {
+        console.log("No existe sesión.");
         mostrarLogin();
-
         return;
     }
 
-
-    console.log(
-        "Sesión encontrada:",
-        session.user.email
-    );
-
-
-    await cargarPropietario(
-        session.user
-    );
+    console.log("Sesión encontrada:", session.user.email);
+    await cargarPropietario(session.user);
 }
-
 
 // =====================================================
 // LOGIN
-// =====================================================
+loginForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    loginButton.disabled = true;
+    mostrarCargando("Iniciando sesión...");
 
-loginForm.addEventListener(
-    "submit",
-    async event => {
+    try {
 
-        event.preventDefault();
+        const email =
+            emailInput
+                .value
+                .trim()
+                .toLowerCase();
 
-        loginButton.disabled = true;
+        const password = passwordInput.value;
 
-        mostrarCargando("Iniciando sesión...");
+        const { data, error } = await supabase.auth
+            .signInWithPassword({
+                email,
+                password
+            });
 
-        try {
-
-            const email =
-                emailInput
-                    .value
-                    .trim()
-                    .toLowerCase();
-
-
-            const password =
-                passwordInput.value;
-
-
-            const {
-                data,
-                error
-            } =
-                await supabase.auth
-                    .signInWithPassword({
-                        email,
-                        password
-                    });
-
-
-            if (error) {
-
-                Swal.close();
-
-                await mostrarError("No pudimos iniciar sesión", "El correo electrónico o la contraseña son incorrectos.");
-
-                return;
-            }
-
-            if (!data.user) {
-
-                Swal.close();
-
-                await mostrarError("No pudimos iniciar sesión", "No fue posible obtener la información de tu cuenta.");
-
-                return;
-            }
-
-            Swal.close();
-
-            console.log("Usuario autenticado:", data.user.email);
-
-            await cargarPropietario(data.user);
-
-        } catch (error) {
-
-            Swal.close();
-
-            console.error("Error inesperado iniciando sesión:", error);
-
-            await mostrarError("No pudimos iniciar sesión", "Ocurrió un problema inesperado. Intenta nuevamente.");
-
-        } finally {
-
-            loginButton.disabled =
-                false;
+        if (error) {
+            cerrarCargando();
+            await mostrarError("No pudimos iniciar sesión", "El correo electrónico o la contraseña son incorrectos.");
+            return;
         }
 
-    }
-);
+        if (!data.user) {
+            cerrarCargando();
+            await mostrarError("No pudimos iniciar sesión", "No fue posible obtener la información de tu cuenta.");
+            return;
+        }
 
+        cerrarCargando();
+        console.log("Usuario autenticado:", data.user.email);
+        await cargarPropietario(data.user);
+
+    } catch (error) {
+        cerrarCargando();
+        console.error("Error inesperado iniciando sesión:", error);
+        await mostrarError("No pudimos iniciar sesión", "Ocurrió un problema inesperado. Intenta nuevamente.");
+
+    } finally {
+        loginButton.disabled = false;
+    }
+}
+);
 
 // =====================================================
 // CARGAR PROPIETARIO
-// =====================================================
-
 async function cargarPropietario(user) {
 
-    console.log(
-        "Cargando propietario:",
-        user.email
-    );
+    console.log("Cargando propietario:", user.email);
 
-
-    const {
-        data: member,
-        error
-    } =
-        await supabase
-            .from("tenant_members")
-            .select(`
+    const { data: member, error } = await supabase
+        .from("tenant_members")
+        .select(`
                 tenant_id,
                 role,
                 activo,
@@ -317,15 +190,15 @@ async function cargarPropietario(user) {
                     slug
                 )
             `)
-            .eq(
-                "user_id",
-                user.id
-            )
-            .eq(
-                "activo",
-                true
-            )
-            .maybeSingle();
+        .eq(
+            "user_id",
+            user.id
+        )
+        .eq(
+            "activo",
+            true
+        )
+        .maybeSingle();
 
     if (error) {
 
