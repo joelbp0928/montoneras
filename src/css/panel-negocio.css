@@ -28,9 +28,91 @@
 
 	--transition: 160ms ease;
 }
+
+/* =========================================================
+   TEMA OSCURO
+   ========================================================= */
+[data-theme="dark"] {
+	--color-primary: #3b82f6;
+	--color-primary-hover: #60a5fa;
+	--color-primary-soft: #172554;
+
+	--color-success: #22c55e;
+	--color-warning: #f59e0b;
+	--color-danger: #ef4444;
+
+	--color-bg: #0f1115;
+	--color-surface: #181b21;
+	--color-surface-hover: #20242c;
+
+	--color-text: #f3f4f6;
+	--color-text-secondary: #9ca3af;
+	--color-border: #2b3039;
+
+	--shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+	--shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
 /* =========================================================
    GENERAL
    ========================================================= */
+   /* =========================================================
+   COMPONENTES ADAPTADOS AL TEMA
+   ========================================================= */
+
+body {
+	background: var(--color-bg);
+	color: var(--color-text);
+	transition: background var(--transition), color var(--transition);
+}
+
+.card,
+.modal-content {
+	background: var(--color-surface);
+	color: var(--color-text);
+	border-color: var(--color-border);
+}
+
+.form-control,
+.form-select {
+	background-color: var(--color-surface);
+	color: var(--color-text);
+	border-color: var(--color-border);
+}
+
+.form-control:focus,
+.form-select:focus {
+	background-color: var(--color-surface);
+	color: var(--color-text);
+}
+
+.form-control::placeholder {
+	color: var(--color-text-secondary);
+}
+
+.form-text,
+.text-secondary {
+	color: var(--color-text-secondary) !important;
+}
+
+.modal-header,
+.modal-footer {
+	border-color: var(--color-border);
+}
+
+[data-theme="dark"] .btn-light {
+	background: #252a33;
+	border-color: #343a46;
+	color: var(--color-text);
+}
+
+[data-theme="dark"] .btn-light:hover {
+	background: #303641;
+	color: #fff;
+}
+
+[data-theme="dark"] .btn-close {
+	filter: invert(1) grayscale(100%) brightness(200%);
+}
    /* =========================================================
    LOGIN
    ========================================================= */
@@ -924,4 +1006,33 @@
 	margin-right: 5px;
 
 	color: var(--color-text-secondary);
+}
+
+.topbar-actions {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.theme-toggle {
+	width: 38px;
+	height: 38px;
+	display: grid;
+	place-items: center;
+	border: 1px solid var(--color-border);
+	border-radius: 10px;
+	background: var(--color-surface);
+	color: var(--color-text-secondary);
+	font-size: 17px;
+	cursor: pointer;
+	transition:
+		background var(--transition),
+		color var(--transition),
+		border-color var(--transition);
+}
+
+.theme-toggle:hover {
+	background: var(--color-surface-hover);
+	color: var(--color-primary);
+	border-color: var(--color-primary);
 }

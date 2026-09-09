@@ -257,6 +257,7 @@ employeeForm?.addEventListener("submit", async event => {
         modal?.hide();
 
         await cargarEmpleados();
+        notificarEmpleadosActualizados();
 
         mostrarCredenciales(result);
 
@@ -673,14 +674,28 @@ function renderEmpleados(empleados) {
                             </div>
 
                         </div>
-                        <button
-                            type="button"
-                            class="btn btn-outline-primary btn-sm editar-empleado"
-                            data-employee-id="${empleado.id}"
-                        >
-                            <i class="bi bi-pencil"></i>
-                            Editar
-                        </button>
+                        <div class="d-flex gap-2">
+                            <button
+                                type="button"
+                                class="btn btn-outline-primary btn-sm editar-empleado"
+                                data-employee-id="${empleado.id}"
+                            >
+                                <i class="bi bi-pencil"></i>
+                                Editar
+                            </button>
+
+                            ${empleado.activo ? `
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-danger btn-sm desactivar-empleado"
+                                    data-employee-id="${empleado.id}"
+                                    data-employee-name="${escaparHTML(empleado.profile?.nombre ?? "Empleado")}"
+                                >
+                                    <i class="bi bi-person-x"></i>
+                                    Dar de baja
+                                </button>
+                            ` : ""}
+                        </div>
                     </div>
                 </div>
             `;
@@ -747,6 +762,107 @@ async function abrirEditarEmpleado(memberId) {
     }
 }
 
+async function desactivarEmpleado(memberId, nombre) {
+    if (!tenantId || !memberId) return;
+
+    const confirmacion = await Swal.fire({
+        icon: "warning",
+        title: "¿Dar de baja al empleado?",
+        html: `
+            <p class="mb-2">Estás por dar de baja a:</p>
+            <strong>${escaparHTML(nombre)}</strong>
+
+            <div class="alert alert-warning text-start mt-4 mb-0">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                El empleado perderá acceso al negocio y a todas sus sucursales.
+                Su información e historial se conservarán.
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '<i class="bi bi-person-x me-1"></i> Dar de baja',
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#dc2626",
+        reverseButtons: true
+    });
+
+    if (!confirmacion.isConfirmed) return;
+
+    mostrarCargando("Dando de baja al empleado...");
+
+    try {
+        const { data, error } = await supabase.rpc(
+            "desactivar_empleado",
+            { p_tenant_member_id: memberId }
+        );
+
+        cerrarCargando();
+
+        if (error) throw error;
+
+        if (!data?.success) {
+            await manejarResultadoBajaEmpleado(data?.code);
+            return;
+        }
+
+        await cargarEmpleados();
+        notificarEmpleadosActualizados();
+
+        await Swal.fire({
+            icon: "success",
+            title: "Empleado dado de baja",
+            html: `
+                <strong>${escaparHTML(nombre)}</strong>
+                <p class="text-secondary mt-2 mb-0">
+                    Ya no tiene acceso al negocio ni a sus sucursales.
+                    Su información histórica permanece guardada.
+                </p>
+            `,
+            confirmButtonText: "Continuar",
+            confirmButtonColor: "#2563eb"
+        });
+
+    } catch (error) {
+        cerrarCargando();
+        console.error("Error inesperado dando de baja empleado:", error);
+
+        await mostrarError(
+            "No pudimos dar de baja al empleado",
+            "Ocurrió un problema inesperado. Intenta nuevamente."
+        );
+    }
+}
+
+async function manejarResultadoBajaEmpleado(code) {
+    const errores = {
+        EMPLOYEE_NOT_FOUND: {
+            titulo: "Empleado no encontrado",
+            mensaje: "El empleado ya no existe o no pertenece al negocio."
+        },
+        FORBIDDEN: {
+            titulo: "Sin permisos",
+            mensaje: "Tu cuenta no tiene permisos para dar de baja a este empleado."
+        },
+        ALREADY_INACTIVE: {
+            titulo: "Empleado inactivo",
+            mensaje: "Este empleado ya se encuentra dado de baja."
+        }
+    };
+
+    const error = errores[code];
+
+    if (!error) {
+        return mostrarError(
+            "No pudimos completar la operación",
+            "La operación no pudo completarse."
+        );
+    }
+
+    return mostrarAdvertencia(
+        error.titulo,
+        error.mensaje
+    );
+}
+
 function renderSucursalesEdicion(asignaciones = []) {
     const seleccionadas = new Set(asignaciones.map(({ restaurant_id }) => restaurant_id));
 
@@ -779,9 +895,18 @@ function obtenerSucursalesEdicion() {
         .map(({ value }) => value);
 }
 
-employeesList.addEventListener("click", event => {
+employeesList?.addEventListener("click", async event => {
     const editar = event.target.closest(".editar-empleado");
-    if (editar) abrirEditarEmpleado(editar.dataset.employeeId);
+    const desactivar = event.target.closest(".desactivar-empleado");
+
+    if (editar) return abrirEditarEmpleado(editar.dataset.employeeId);
+
+    if (desactivar) {
+        return desactivarEmpleado(
+            desactivar.dataset.employeeId,
+            desactivar.dataset.employeeName
+        );
+    }
 });
 
 editEmployeeForm.addEventListener("submit", guardarEdicionEmpleado);
@@ -837,6 +962,7 @@ async function guardarEdicionEmpleado(event) {
         bootstrap.Modal.getInstance(editEmployeeModal)?.hide();
 
         await cargarEmpleados();
+        notificarEmpleadosActualizados();
 
         await Swal.fire({
             icon: "success",
@@ -1098,5 +1224,13 @@ async function manejarErrorEdicionEmpleado(error) {
     return mostrarError(
         "No pudimos actualizar el empleado",
         "Ocurrió un problema guardando los cambios."
+    );
+}
+
+function notificarEmpleadosActualizados() {
+    document.dispatchEvent(
+        new CustomEvent("empleados:actualizados", {
+            detail: { tenantId }
+        })
     );
 }

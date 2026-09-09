@@ -2,6 +2,7 @@ import { supabase } from "../config-supabase.js";
 import { iniciarModuloEmpleados } from "./empleados.js";
 import { iniciarModuloSucursales } from "./sucursales.js";
 import { mostrarError, mostrarAdvertencia, mostrarCargando, cerrarCargando, mostrarExito } from "../shared/alertas.js";
+import { initTheme } from "../shared/theme.js";
 
 // =====================================================
 // ESTADO
@@ -23,6 +24,11 @@ const dashboardSection = document.getElementById("dashboardSection");
 const branchesSection = document.getElementById("branchesSection");
 const employeesSection = document.getElementById("employeesSection");
 const sidebarLinks = document.querySelectorAll(".sidebar-link[data-section]");
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+	initTheme();
+});
 
 function mostrarSeccion(sectionName) {
 
