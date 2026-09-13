@@ -7,7 +7,8 @@ import { escaparHTML } from "../shared/utils.js";
 let tenantId = null;
 let tenant = null;
 let sucursales = [];
-
+let empleadosCache = [];
+let filtroEmpleados = "activos";
 // =====================================================
 // DOM
 const employeeForm = document.getElementById("employeeForm");
@@ -25,9 +26,12 @@ const editEmployeeMemberId = document.getElementById("editEmployeeMemberId");
 const editEmployeeName = document.getElementById("editEmployeeName");
 const editEmployeePhone = document.getElementById("editEmployeePhone");
 const editEmployeeRole = document.getElementById("editEmployeeRole");
-const editEmployeeActive = document.getElementById("editEmployeeActive");
 const editEmployeeBranches = document.getElementById("editEmployeeBranches");
 const saveEmployeeBtn = document.getElementById("saveEmployeeBtn");
+const employeeFilters = document.getElementById("employeeFilters");
+const employeesActiveCount = document.getElementById("employeesActiveCount");
+const employeesInactiveCount = document.getElementById("employeesInactiveCount");
+const employeesTotalCount = document.getElementById("employeesTotalCount");
 
 // =====================================================
 // INICIALIZAR MÓDULO
@@ -279,27 +283,21 @@ employeeForm?.addEventListener("submit", async event => {
 // =====================================================
 
 async function cargarEmpleados() {
-
     if (!tenantId) {
         return;
     }
 
-
     employeesList.innerHTML = `
         <div class="text-center py-4">
-
             <div
                 class="spinner-border spinner-border-sm"
                 role="status"
             ></div>
-
             <span class="ms-2">
                 Cargando empleados...
             </span>
-
         </div>
     `;
-
 
     try {
 
@@ -328,40 +326,23 @@ async function cargarEmpleados() {
                     ascending: true
                 });
 
-
         if (membersError) {
             throw membersError;
         }
 
-
         if (!members?.length) {
-
-            renderEmpleados([]);
-
+            empleadosCache = [];
+            actualizarVistaEmpleados();
             return;
         }
 
-
         // =============================================
         // IDS
-        // =============================================
-
-        const memberIds =
-            members.map(
-                member => member.id
-            );
-
-
-        const userIds =
-            members.map(
-                member => member.user_id
-            );
-
+        const memberIds = members.map(member => member.id);
+        const userIds = members.map(member => member.user_id);
 
         // =============================================
         // PROFILES + ASIGNACIONES
-        // =============================================
-
         const [
             profilesResult,
             assignmentsResult
@@ -484,36 +465,13 @@ async function cargarEmpleados() {
         // MODELO FINAL
         // =============================================
 
-        const empleados =
-            members.map(
-                member => ({
+        empleadosCache = members.map(member => ({
+            ...member,
+            profile: profilesMap.get(member.user_id) ?? null,
+            restaurant_members: assignmentsMap.get(member.id) ?? []
+        }));
 
-                    ...member,
-
-                    profile:
-                        profilesMap.get(
-                            member.user_id
-                        ) ?? null,
-
-                    restaurant_members:
-                        assignmentsMap.get(
-                            member.id
-                        ) ?? []
-
-                })
-            );
-
-
-        console.log(
-            "Empleados:",
-            empleados
-        );
-
-
-        renderEmpleados(
-            empleados
-        );
-
+        actualizarVistaEmpleados();
 
     } catch (error) {
 
@@ -541,6 +499,43 @@ async function cargarEmpleados() {
     }
 }
 
+
+function actualizarVistaEmpleados() {
+    const filtrados = empleadosCache.filter(empleado => {
+        if (filtroEmpleados === "activos") return empleado.activo;
+        if (filtroEmpleados === "inactivos") return !empleado.activo;
+        return true;
+    });
+
+    actualizarContadoresEmpleados();
+    renderEmpleados(filtrados);
+}
+
+function actualizarContadoresEmpleados() {
+    const activos = empleadosCache.filter(empleado => empleado.activo).length;
+    const inactivos = empleadosCache.length - activos;
+
+    employeesActiveCount.textContent = activos;
+    employeesInactiveCount.textContent = inactivos;
+    employeesTotalCount.textContent = empleadosCache.length;
+}
+
+employeeFilters?.addEventListener("click", event => {
+    const boton = event.target.closest("[data-employee-filter]");
+    if (!boton) return;
+
+    const filtro = boton.dataset.employeeFilter;
+    if (!["activos", "inactivos", "todos"].includes(filtro)) return;
+
+    filtroEmpleados = filtro;
+
+    employeeFilters.querySelectorAll("[data-employee-filter]").forEach(item => {
+        item.classList.toggle("active", item === boton);
+    });
+
+    actualizarVistaEmpleados();
+});
+
 // =====================================================
 // RENDER EMPLEADOS
 // =====================================================
@@ -550,25 +545,36 @@ function renderEmpleados(empleados) {
     employeesList.innerHTML = "";
 
     if (!empleados.length) {
+        const mensajes = {
+            activos: {
+                icono: "bi-person-check",
+                titulo: "No hay empleados activos",
+                texto: "No tienes empleados activos en este momento."
+            },
+            inactivos: {
+                icono: "bi-person-x",
+                titulo: "No hay empleados inactivos",
+                texto: "Los empleados dados de baja aparecerán aquí."
+            },
+            todos: {
+                icono: "bi-people",
+                titulo: "Aún no tienes empleados",
+                texto: "Registra tu primer empleado para comenzar."
+            }
+        };
+
+        const mensaje = mensajes[filtroEmpleados];
+
         employeesList.innerHTML = `
             <div class="card border-0 shadow-sm">
                 <div class="card-body text-center py-5">
-                    <i
-                        class="
-                            bi bi-people
-                            fs-1
-                            text-secondary
-                        "
-                    ></i>
-                    <h3 class="h6 mt-3">
-                        Aún no tienes empleados
-                    </h3>
-                    <p class="text-secondary mb-0">
-                        Registra tu primer empleado para comenzar.
-                    </p>
+                    <i class="bi ${mensaje.icono} fs-1 text-secondary"></i>
+                    <h3 class="h6 mt-3">${mensaje.titulo}</h3>
+                    <p class="text-secondary mb-0">${mensaje.texto}</p>
                 </div>
             </div>
         `;
+
         return;
     }
 
@@ -675,26 +681,34 @@ function renderEmpleados(empleados) {
 
                         </div>
                         <div class="d-flex gap-2">
-                            <button
-                                type="button"
-                                class="btn btn-outline-primary btn-sm editar-empleado"
-                                data-employee-id="${empleado.id}"
-                            >
-                                <i class="bi bi-pencil"></i>
-                                Editar
-                            </button>
-
                             ${empleado.activo ? `
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-primary btn-sm editar-empleado"
+                                    data-employee-id="${empleado.id}"
+                                >
+                                    <i class="bi bi-pencil"></i>
+                                    Editar
+                                </button>
+
                                 <button
                                     type="button"
                                     class="btn btn-outline-danger btn-sm desactivar-empleado"
                                     data-employee-id="${empleado.id}"
-                                    data-employee-name="${escaparHTML(empleado.profile?.nombre ?? "Empleado")}"
                                 >
                                     <i class="bi bi-person-x"></i>
                                     Dar de baja
                                 </button>
-                            ` : ""}
+                            ` : `
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-success btn-sm reactivar-empleado"
+                                    data-employee-id="${empleado.id}"
+                                >
+                                    <i class="bi bi-person-check"></i>
+                                    Reactivar
+                                </button>
+                            `}
                         </div>
                     </div>
                 </div>
@@ -744,7 +758,6 @@ async function abrirEditarEmpleado(memberId) {
         editEmployeeName.value = profileResult.data?.nombre ?? "";
         editEmployeePhone.value = profileResult.data?.telefono ?? "";
         editEmployeeRole.value = asignaciones[0]?.role ?? "staff";
-        editEmployeeActive.value = String(member.activo);
 
         renderSucursalesEdicion(asignaciones);
 
@@ -898,15 +911,27 @@ function obtenerSucursalesEdicion() {
 employeesList?.addEventListener("click", async event => {
     const editar = event.target.closest(".editar-empleado");
     const desactivar = event.target.closest(".desactivar-empleado");
+    const reactivar = event.target.closest(".reactivar-empleado");
 
-    if (editar) return abrirEditarEmpleado(editar.dataset.employeeId);
+    const boton = editar ?? desactivar ?? reactivar;
+    if (!boton) return;
 
-    if (desactivar) {
-        return desactivarEmpleado(
-            desactivar.dataset.employeeId,
-            desactivar.dataset.employeeName
+    const memberId = boton.dataset.employeeId;
+    const empleado = empleadosCache.find(item => item.id === memberId);
+
+    if (!empleado) {
+        await mostrarError(
+            "Empleado no encontrado",
+            "No pudimos encontrar la información actual del empleado."
         );
+        return;
     }
+
+    const nombre = empleado.profile?.nombre ?? "Empleado";
+
+    if (editar) return abrirEditarEmpleado(memberId);
+    if (desactivar) return desactivarEmpleado(memberId, nombre);
+    if (reactivar) return reactivarEmpleado(empleado);
 });
 
 editEmployeeForm.addEventListener("submit", guardarEdicionEmpleado);
@@ -919,7 +944,6 @@ async function guardarEdicionEmpleado(event) {
         nombre: editEmployeeName.value.trim(),
         telefono: editEmployeePhone.value.trim(),
         role: editEmployeeRole.value,
-        activo: editEmployeeActive.value === "true",
         restaurantIds: obtenerSucursalesEdicion()
     };
 
@@ -931,7 +955,7 @@ async function guardarEdicionEmpleado(event) {
         return;
     }
 
-    if (empleado.activo && !empleado.restaurantIds.length) {
+    if (!empleado.restaurantIds.length) {
         await mostrarAdvertencia(
             "Sucursal requerida",
             "Un empleado activo debe tener al menos una sucursal asignada."
@@ -954,7 +978,6 @@ async function guardarEdicionEmpleado(event) {
             p_telefono: empleado.telefono || null,
             p_role: empleado.role,
             p_restaurant_ids: empleado.restaurantIds,
-            p_activo: empleado.activo
         });
 
         if (error) throw error;
@@ -983,6 +1006,184 @@ async function guardarEdicionEmpleado(event) {
         saveEmployeeBtn.disabled = false;
         saveEmployeeBtn.innerHTML = contenidoOriginal;
     }
+}
+
+async function reactivarEmpleado(empleado) {
+    if (!tenantId || !empleado?.id) return;
+
+    if (!sucursales.length) {
+        await mostrarAdvertencia(
+            "No hay sucursales disponibles",
+            "Necesitas al menos una sucursal activa antes de reactivar al empleado."
+        );
+        return;
+    }
+
+    const roleAnterior = empleado.restaurant_members?.[0]?.role ?? "staff";
+
+    const resultado = await Swal.fire({
+        icon: "question",
+        title: "Reactivar empleado",
+        html: `
+			<p class="mb-1">Estás por reactivar a:</p>
+			<strong>${escaparHTML(empleado.profile?.nombre ?? "Empleado")}</strong>
+
+			<div class="text-start mt-4">
+				<label class="form-label fw-semibold">Rol</label>
+
+				<select id="reactivateEmployeeRole" class="form-select mb-3">
+					<option value="manager" ${roleAnterior === "manager" ? "selected" : ""}>Gerente</option>
+					<option value="supervisor" ${roleAnterior === "supervisor" ? "selected" : ""}>Supervisor</option>
+					<option value="cashier" ${roleAnterior === "cashier" ? "selected" : ""}>Cajero</option>
+					<option value="staff" ${roleAnterior === "staff" ? "selected" : ""}>Empleado</option>
+				</select>
+
+				<label class="form-label fw-semibold">Sucursales</label>
+
+				<div class="reactivate-branches">
+					${sucursales.map(sucursal => `
+						<label class="form-check border rounded p-3 mb-2">
+							<input
+								type="checkbox"
+								class="form-check-input reactivate-branch me-2"
+								value="${sucursal.id}"
+							>
+							<span class="form-check-label">
+								${escaparHTML(sucursal.nombre)}
+							</span>
+						</label>
+					`).join("")}
+				</div>
+			</div>
+		`,
+        showCancelButton: true,
+        confirmButtonText: '<i class="bi bi-person-check me-1"></i> Reactivar',
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#16a34a",
+        reverseButtons: true,
+
+        preConfirm: () => {
+            const role = document.getElementById("reactivateEmployeeRole").value;
+
+            const restaurantIds = [
+                ...document.querySelectorAll(".reactivate-branch:checked")
+            ].map(item => item.value);
+
+            if (!restaurantIds.length) {
+                Swal.showValidationMessage(
+                    "Selecciona al menos una sucursal."
+                );
+                return false;
+            }
+
+            return {
+                role,
+                restaurantIds
+            };
+        }
+    });
+
+    if (!resultado.isConfirmed) return;
+
+    mostrarCargando("Reactivando empleado...");
+
+    try {
+        const { data, error } = await supabase.rpc(
+            "reactivar_empleado",
+            {
+                p_tenant_member_id: empleado.id,
+                p_restaurant_ids: resultado.value.restaurantIds,
+                p_role: resultado.value.role
+            }
+        );
+
+        cerrarCargando();
+
+        if (error) throw error;
+
+        if (!data?.success) {
+            await manejarResultadoReactivarEmpleado(data?.code);
+            return;
+        }
+
+        await cargarEmpleados();
+
+        notificarEmpleadosActualizados();
+
+        await Swal.fire({
+            icon: "success",
+            title: "Empleado reactivado",
+            html: `
+				<strong>${escaparHTML(empleado.profile?.nombre ?? "Empleado")}</strong>
+				<p class="text-secondary mt-2 mb-0">
+					Ya puede volver a ingresar al negocio.
+				</p>
+			`,
+            confirmButtonText: "Continuar",
+            confirmButtonColor: "#2563eb"
+        });
+
+    } catch (error) {
+        cerrarCargando();
+
+        console.error(
+            "Error inesperado reactivando empleado:",
+            error
+        );
+
+        await mostrarError(
+            "No pudimos reactivar al empleado",
+            "Ocurrió un problema inesperado. Intenta nuevamente."
+        );
+    }
+}
+
+async function manejarResultadoReactivarEmpleado(code) {
+    const errores = {
+        EMPLOYEE_NOT_FOUND: [
+            "Empleado no encontrado",
+            "El empleado no existe o ya no pertenece al negocio."
+        ],
+
+        FORBIDDEN: [
+            "Sin permisos",
+            "No tienes permisos para reactivar este empleado."
+        ],
+
+        ALREADY_ACTIVE: [
+            "Empleado activo",
+            "Este empleado ya se encuentra activo."
+        ],
+
+        BRANCH_REQUIRED: [
+            "Sucursal requerida",
+            "Selecciona al menos una sucursal."
+        ],
+
+        INVALID_BRANCH: [
+            "Sucursal no disponible",
+            "Una de las sucursales seleccionadas ya no está disponible."
+        ],
+
+        INVALID_ROLE: [
+            "Rol no válido",
+            "Selecciona un rol válido."
+        ]
+    };
+
+    const mensaje = errores[code];
+
+    if (!mensaje) {
+        return mostrarError(
+            "No pudimos completar la operación",
+            "El servidor no pudo completar la reactivación."
+        );
+    }
+
+    return mostrarAdvertencia(
+        mensaje[0],
+        mensaje[1]
+    );
 }
 // =====================================================
 // NOMBRE DE ROLES
@@ -1196,35 +1397,60 @@ document.addEventListener(
         await cargarSucursalesEmpleado();
     }
 );
-
 async function manejarErrorEdicionEmpleado(error) {
-    const mensaje = error?.message?.toLowerCase() ?? "";
+	const mensaje = error?.message?.toLowerCase() ?? "";
+	const code = error?.code ?? "";
 
-    if (mensaje.includes("permis")) {
-        return mostrarError(
-            "Sin permisos",
-            "Tu cuenta no tiene permisos para modificar este empleado."
-        );
-    }
+	// RPC inexistente o firma incorrecta
+	if (code === "PGRST202" || mensaje.includes("could not find the function")) {
+		console.error("RPC actualizar_empleado no encontrada o firma incorrecta:", error);
 
-    if (mensaje.includes("sucursal")) {
-        return mostrarError(
-            "Sucursal no disponible",
-            "Una de las sucursales seleccionadas ya no está disponible."
-        );
-    }
+		return mostrarError(
+			"Error de configuración",
+			"No fue posible localizar la función de actualización del empleado."
+		);
+	}
 
-    if (mensaje.includes("rol")) {
-        return mostrarError(
-            "Rol no válido",
-            "El rol seleccionado no es válido."
-        );
-    }
+	if (mensaje.includes("no tienes permisos")) {
+		return mostrarError(
+			"Sin permisos",
+			"Tu cuenta no tiene permisos para modificar este empleado."
+		);
+	}
 
-    return mostrarError(
-        "No pudimos actualizar el empleado",
-        "Ocurrió un problema guardando los cambios."
-    );
+	if (mensaje.includes("empleado está inactivo")) {
+		return mostrarAdvertencia(
+			"Empleado inactivo",
+			"Para modificar sus accesos primero debes reactivar al empleado."
+		);
+	}
+
+	if (mensaje.includes("rol no válido")) {
+		return mostrarError(
+			"Rol no válido",
+			"El rol seleccionado no es válido."
+		);
+	}
+
+	if (
+		mensaje.includes("sucursal") ||
+		mensaje.includes("sucursales")
+	) {
+		return mostrarError(
+			"Sucursal no disponible",
+			"Una de las sucursales seleccionadas ya no está disponible."
+		);
+	}
+
+	console.error(
+		"Error inesperado actualizando empleado:",
+		error
+	);
+
+	return mostrarError(
+		"No pudimos actualizar el empleado",
+		"Ocurrió un problema guardando los cambios."
+	);
 }
 
 function notificarEmpleadosActualizados() {

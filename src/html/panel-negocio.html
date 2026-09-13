@@ -410,6 +410,51 @@
                   Nuevo empleado
                 </button>
               </div>
+              <div class="employee-toolbar">
+                <div
+                  id="employeeFilters"
+                  class="employee-filters"
+                  role="group"
+                  aria-label="Filtrar empleados"
+                >
+                  <button
+                    type="button"
+                    class="employee-filter-btn active"
+                    data-employee-filter="activos"
+                  >
+                    Activos
+                    <span
+                      id="employeesActiveCount"
+                      class="employee-filter-count"
+                      >0</span
+                    >
+                  </button>
+
+                  <button
+                    type="button"
+                    class="employee-filter-btn"
+                    data-employee-filter="inactivos"
+                  >
+                    Inactivos
+                    <span
+                      id="employeesInactiveCount"
+                      class="employee-filter-count"
+                      >0</span
+                    >
+                  </button>
+
+                  <button
+                    type="button"
+                    class="employee-filter-btn"
+                    data-employee-filter="todos"
+                  >
+                    Todos
+                    <span id="employeesTotalCount" class="employee-filter-count"
+                      >0</span
+                    >
+                  </button>
+                </div>
+              </div>
 
               <div id="employeesList"></div>
             </section>
@@ -582,14 +627,6 @@
                       <option value="supervisor">Supervisor</option>
                       <option value="cashier">Cajero</option>
                       <option value="staff">Empleado</option>
-                    </select>
-                  </div>
-
-                  <div class="col-md-6">
-                    <label class="form-label">Estado</label>
-                    <select id="editEmployeeActive" class="form-select">
-                      <option value="true">Activo</option>
-                      <option value="false">Inactivo</option>
                     </select>
                   </div>
 
