@@ -1,6 +1,68 @@
 import { uploadImage, saveConfigToFirestore, getConfigFromFirestore } from "../storage.js";
 import { showmessage } from "../showmessage.js";
 
+import { supabase } from "../config-supabase.js";
+
+
+async function cargarSloganSucursalActual() {
+    const context =
+        JSON.parse(
+            sessionStorage.getItem(
+                "pos_context"
+            ) ?? "null"
+        );
+
+    if (
+        !context?.tenantId ||
+        !context?.restaurantId
+    ) {
+        return;
+    }
+
+    const [
+        tenantResult,
+        brandingResult
+    ] = await Promise.all([
+        supabase
+            .from("tenants")
+            .select("slogan")
+            .eq(
+                "id",
+                context.tenantId
+            )
+            .maybeSingle(),
+
+        supabase
+            .from("branding")
+            .select("slogan")
+            .eq(
+                "restaurant_id",
+                context.restaurantId
+            )
+            .maybeSingle()
+    ]);
+
+    if (tenantResult.error) {
+        throw tenantResult.error;
+    }
+
+    if (brandingResult.error) {
+        throw brandingResult.error;
+    }
+
+    const slogan =
+        brandingResult.data?.slogan ??
+        tenantResult.data?.slogan ??
+        "";
+
+    document
+        .getElementById(
+            "welcomeMessage"
+        )
+        .value =
+        slogan;
+}
+
 // Función para mostrar u ocultar los campos según la selección
 export function updatePointsFields() {
     const pointsTypeSelect = document.getElementById('pointsType');
@@ -44,13 +106,12 @@ export async function initAdminConfig() {
     const loadingElement = document.getElementById("loading");
 
     try {
-        loadingElement.style.display = "flex"; 
+        loadingElement.style.display = "flex";
 
         const config = await getConfigFromFirestore();
 
         if (config) {
             document.getElementById("restaurantName").value = config.restaurantName || "";
-            document.getElementById("welcomeMessage").value = config.welcomeMessage || "";
 
             if (config.logo) document.querySelector(".logo").src = config.logo;
             if (config.background) document.querySelector(".background-image").style.backgroundImage = `url(${config.background})`;
@@ -62,13 +123,14 @@ export async function initAdminConfig() {
                 document.getElementById("visitsRequired").value = config.visitsRequired || 5;
             }
 
+            await cargarSloganSucursalActual();
             updatePointsFields(); // 🔥 Asegurar que los campos correctos sean visibles al cargar
         }
     } catch (error) {
         showmessage("❌ Error al cargar configuración.", "error");
         console.error("❌ Error al cargar configuración:", error);
     } finally {
-        loadingElement.style.display = "none"; 
+        loadingElement.style.display = "none";
     }
 }
 
@@ -152,7 +214,22 @@ async function saveAdminConfig() {
 // 📌 Evento para guardar la configuración
 export function setupAdminEventListeners() {
     document.getElementById("saveConfig").addEventListener("click", saveAdminConfig);
+    document.addEventListener(
+        "pos:restaurant-changed",
+        async () => {
+            try {
+                await cargarSloganSucursalActual();
+            } catch (error) {
+                console.error(
+                    "Error actualizando slogan:",
+                    error
+                );
+            }
+        }
+    );
 }
+
+
 //registrar visitas llevar control de visitas
 async function registerVisit(userId) {
     const userRef = doc(db, "clientes", userId);

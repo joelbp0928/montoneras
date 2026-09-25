@@ -1,33 +1,428 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="es">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Page Not Found</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px 16px; border-radius: 3px; }
-      #message h3 { color: #888; font-weight: normal; font-size: 16px; margin: 16px 0 12px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
+    <title>404 · Página no encontrada | Software POS</title>
+
+    <meta name="theme-color" content="#f3f4f6" />
+
+    <style>
+      :root {
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --primary-soft: #eff6ff;
+
+        --bg: #f3f4f6;
+        --surface: #ffffff;
+
+        --text: #111827;
+        --text-secondary: #6b7280;
+
+        --border: #e5e7eb;
+
+        --radius-sm: 10px;
+        --radius-md: 14px;
+        --radius-lg: 20px;
+
+        --shadow: 0 20px 50px rgba(17, 24, 39, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+
+        background:
+          radial-gradient(
+            circle at top left,
+            rgba(37, 99, 235, 0.1),
+            transparent 34%
+          ),
+          var(--bg);
+
+        color: var(--text);
+      }
+
+      .topbar {
+        min-height: 74px;
+
+        display: flex;
+        align-items: center;
+
+        padding: 0 max(24px, calc((100vw - 1180px) / 2));
+
+        background: rgba(255, 255, 255, 0.92);
+
+        border-bottom: 1px solid var(--border);
+
+        backdrop-filter: blur(12px);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .brand-icon {
+        width: 40px;
+        height: 40px;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 11px;
+
+        background: var(--primary);
+        color: #fff;
+
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .brand strong {
+        display: block;
+
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .brand small {
+        display: block;
+
+        margin-top: 2px;
+
+        color: var(--text-secondary);
+
+        font-size: 11px;
+      }
+
+      main {
+        width: min(calc(100% - 32px), 980px);
+
+        margin: clamp(42px, 9vh, 90px) auto 50px;
+      }
+
+      .error-shell {
+        display: grid;
+
+        grid-template-columns:
+          minmax(0, 1fr)
+          280px;
+
+        gap: 28px;
+
+        padding: clamp(28px, 5vw, 52px);
+
+        background: var(--surface);
+
+        border: 1px solid var(--border);
+
+        border-radius: var(--radius-lg);
+
+        box-shadow: var(--shadow);
+      }
+
+      .error-code {
+        margin: 0 0 12px;
+
+        color: var(--primary);
+
+        font-size: clamp(56px, 10vw, 104px);
+
+        font-weight: 800;
+
+        line-height: 0.9;
+
+        letter-spacing: -0.06em;
+      }
+
+      .error-label {
+        margin: 0 0 12px;
+
+        color: var(--primary);
+
+        font-size: 12px;
+        font-weight: 700;
+
+        letter-spacing: 0.06em;
+
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0 0 14px;
+
+        font-size: clamp(28px, 5vw, 40px);
+
+        line-height: 1.15;
+
+        letter-spacing: -0.035em;
+      }
+
+      .description {
+        max-width: 590px;
+
+        margin: 0;
+
+        color: var(--text-secondary);
+
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+
+        margin-top: 26px;
+      }
+
+      .btn {
+        min-height: 42px;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 10px 15px;
+
+        border: 1px solid var(--border);
+
+        border-radius: var(--radius-sm);
+
+        color: var(--text);
+
+        background: var(--surface);
+
+        text-decoration: none;
+
+        font-size: 13px;
+        font-weight: 600;
+
+        transition:
+          background 0.16s ease,
+          border-color 0.16s ease,
+          transform 0.16s ease;
+      }
+
+      .btn:hover {
+        border-color: var(--primary);
+        background: var(--primary-soft);
+
+        transform: translateY(-1px);
+      }
+
+      .btn-primary {
+        border-color: var(--primary);
+
+        background: var(--primary);
+        color: #fff;
+      }
+
+      .btn-primary:hover {
+        background: var(--primary-hover);
+        color: #fff;
+      }
+
+      .routes {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .route {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+
+        padding: 14px;
+
+        border: 1px solid var(--border);
+
+        border-radius: var(--radius-md);
+
+        color: var(--text);
+
+        text-decoration: none;
+
+        transition:
+          border-color 0.16s ease,
+          background 0.16s ease;
+      }
+
+      .route:hover {
+        border-color: var(--primary);
+        background: var(--primary-soft);
+      }
+
+      .route-main {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .route-icon {
+        width: 34px;
+        height: 34px;
+
+        display: grid;
+        place-items: center;
+
+        flex-shrink: 0;
+
+        border-radius: 9px;
+
+        background: var(--primary-soft);
+        color: var(--primary);
+      }
+
+      .route strong {
+        display: block;
+
+        font-size: 13px;
+      }
+
+      .route span {
+        display: block;
+
+        margin-top: 2px;
+
+        color: var(--text-secondary);
+
+        font-size: 11px;
+      }
+
+      .route-arrow {
+        color: var(--text-secondary);
+
+        font-size: 18px;
+      }
+
+      .help {
+        margin-top: 18px;
+
+        color: var(--text-secondary);
+
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 760px) {
+        .error-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .routes {
+          margin-top: 8px;
+        }
+      }
+
+      @media (max-width: 500px) {
+        .topbar {
+          padding: 0 16px;
+        }
+
+        main {
+          width: min(calc(100% - 24px), 980px);
+        }
+
+        .error-shell {
+          padding: 24px 20px;
+        }
+
+        .actions {
+          flex-direction: column;
+        }
+
+        .btn {
+          width: 100%;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .btn,
+        .route {
+          transition: none;
+        }
       }
     </style>
   </head>
+
   <body>
-    <div id="message">
-      <h2>404</h2>
-      <h1>Page Not Found</h1>
-      <p>The specified file was not found on this website. Please check the URL for mistakes and try again.</p>
-      <h3>Why am I seeing this?</h3>
-      <p>This page was generated by the Firebase Command-Line Interface. To modify it, edit the <code>404.html</code> file in your project's configured <code>public</code> directory.</p>
-    </div>
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="Ir al inicio">
+        <span class="brand-icon" aria-hidden="true"> ▦ </span>
+
+        <span>
+          <strong> Software POS </strong>
+
+          <small> Òrbita Studio </small>
+        </span>
+      </a>
+    </header>
+
+    <main>
+      <section class="error-shell">
+        <div>
+          <p class="error-label">Error de navegación</p>
+
+          <p class="error-code">404</p>
+
+          <h1>Esta página no está disponible</h1>
+
+          <p class="description">
+            La dirección puede ser incorrecta, el enlace pudo haber cambiado o
+            esta sección ya no está disponible. Puedes regresar o entrar
+            directamente a una de las áreas del sistema.
+          </p>
+
+          <div class="actions">
+            <a class="btn btn-primary" href="index.html"> Ir al inicio </a>
+
+            <button type="button" class="btn" onclick="history.back()">
+              ← Volver atrás
+            </button>
+          </div>
+
+          <p class="help">
+            Si llegaste desde un enlace guardado o compartido, es posible que la
+            ruta haya cambiado.
+          </p>
+        </div>
+
+        <nav class="routes" aria-label="Accesos al sistema">
+          <a class="route" href="index.html">
+            <div class="route-main">
+              <div class="route-icon">👤</div>
+
+              <div>
+                <strong> Clientes </strong>
+
+                <span> Programa de puntos y acceso de usuarios. </span>
+              </div>
+            </div>
+
+            <span class="route-arrow"> › </span>
+          </a>
+        </nav>
+      </section>
+    </main>
   </body>
 </html>

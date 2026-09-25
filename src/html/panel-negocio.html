@@ -296,6 +296,35 @@
                 </div>
               </div>
 
+              <div class="slogan-summary">
+                <div class="slogan-summary-main">
+                  <div class="slogan-summary-icon">
+                    <i class="bi bi-chat-quote"></i>
+                  </div>
+
+                  <div class="slogan-summary-content">
+                    <span class="slogan-summary-label"> Slogan general </span>
+
+                    <strong
+                      id="currentBusinessSlogan"
+                      class="slogan-summary-text"
+                    >
+                      Sin slogan configurado
+                    </strong>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  class="btn btn-outline-primary btn-sm"
+                  data-bs-toggle="modal"
+                  data-bs-target="#sloganModal"
+                >
+                  <i class="bi bi-sliders me-1"></i>
+                  Configurar
+                </button>
+              </div>
+
               <div class="row g-4">
                 <div class="col-xl-4">
                   <div class="card">
@@ -389,8 +418,6 @@
 
             <!-- ================================================ -->
             <!-- EMPLEADOS -->
-            <!-- ================================================ -->
-
             <section id="employeesSection" class="panel-view" hidden>
               <div class="page-header">
                 <div>
@@ -458,6 +485,129 @@
 
               <div id="employeesList"></div>
             </section>
+            <div
+              class="modal fade"
+              id="sloganModal"
+              tabindex="-1"
+              aria-labelledby="sloganModalLabel"
+              aria-hidden="true"
+            >
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <div>
+                      <h2 class="modal-title fs-5" id="sloganModalLabel">
+                        <i class="bi bi-chat-quote me-2"></i>
+                        Configurar slogan
+                      </h2>
+
+                      <p class="text-secondary small mb-0">
+                        Define el mensaje general o personalízalo por sucursal.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="Cerrar"
+                    ></button>
+                  </div>
+
+                  <form id="sloganForm">
+                    <div class="modal-body">
+                      <div class="mb-4">
+                        <label for="businessSlogan" class="form-label">
+                          Slogan
+                        </label>
+
+                        <input
+                          type="text"
+                          id="businessSlogan"
+                          class="form-control"
+                          maxlength="160"
+                          placeholder="Ej. Momentos dulces todos los días"
+                        />
+
+                        <div class="form-text">Máximo 160 caracteres.</div>
+                      </div>
+
+                      <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                          Aplicar en
+                        </label>
+
+                        <div class="slogan-scope-options">
+                          <label class="slogan-scope-option">
+                            <input
+                              type="radio"
+                              id="sloganAllBranches"
+                              name="sloganScope"
+                              class="form-check-input"
+                              value="all"
+                              checked
+                            />
+
+                            <div>
+                              <strong> Todas las sucursales </strong>
+
+                              <small>
+                                Usar este slogan como mensaje general del
+                                negocio.
+                              </small>
+                            </div>
+                          </label>
+
+                          <label class="slogan-scope-option">
+                            <input
+                              type="radio"
+                              id="sloganSelectedBranches"
+                              name="sloganScope"
+                              class="form-check-input"
+                              value="selected"
+                            />
+
+                            <div>
+                              <strong> Solo algunas sucursales </strong>
+
+                              <small>
+                                Aplicar este mensaje únicamente en sucursales
+                                seleccionadas.
+                              </small>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div
+                        id="sloganBranchesContainer"
+                        class="branch-selector"
+                        hidden
+                      ></div>
+                    </div>
+
+                    <div class="modal-footer">
+                      <button
+                        type="button"
+                        class="btn btn-light"
+                        data-bs-dismiss="modal"
+                      >
+                        Cancelar
+                      </button>
+
+                      <button
+                        type="submit"
+                        id="saveSloganBtn"
+                        class="btn btn-primary"
+                      >
+                        <i class="bi bi-check-lg me-1"></i>
+                        Guardar cambios
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
           </main>
         </div>
       </div>
@@ -570,6 +720,7 @@
           </div>
         </div>
       </div>
+
       <!-- MODAL EDITAR EMPLEADO -->
       <div
         class="modal fade"
@@ -703,6 +854,61 @@
                   <input id="editBranchSlug" class="form-control" required />
                   <div class="form-text">
                     Identificador único dentro del negocio.
+                  </div>
+                </div>
+
+                <div class="mt-4">
+                  <label class="form-label fw-semibold"> Slogan actual </label>
+
+                  <div class="branch-current-slogan mb-3">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                      <i class="bi bi-chat-quote text-primary"></i>
+
+                      <strong id="editBranchCurrentSlogan">
+                        Sin slogan configurado
+                      </strong>
+
+                      <span
+                        id="editBranchSloganType"
+                        class="badge text-bg-light border"
+                      >
+                        General
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="form-check mb-3">
+                    <input
+                      type="checkbox"
+                      id="editBranchCustomSlogan"
+                      class="form-check-input"
+                    />
+
+                    <label
+                      for="editBranchCustomSlogan"
+                      class="form-check-label fw-semibold"
+                    >
+                      Usar slogan personalizado
+                    </label>
+                  </div>
+
+                  <div id="editBranchCustomSloganContainer" hidden>
+                    <label for="editBranchSlogan" class="form-label">
+                      Slogan personalizado
+                    </label>
+
+                    <input
+                      type="text"
+                      id="editBranchSlogan"
+                      class="form-control"
+                      maxlength="160"
+                      placeholder="Slogan exclusivo para esta sucursal"
+                    />
+
+                    <div class="form-text">
+                      Este slogan reemplazará al general únicamente en esta
+                      sucursal.
+                    </div>
                   </div>
                 </div>
 

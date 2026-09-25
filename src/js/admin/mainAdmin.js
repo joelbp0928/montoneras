@@ -24,10 +24,17 @@ const newPasswordInput = document.getElementById("newPassword");
 const confirmPasswordInput = document.getElementById("confirmPassword");
 const changePasswordButton = document.getElementById("changePasswordButton");
 
+const restaurantContext = document.getElementById("restaurantContext");
+const contextTenantName = document.getElementById("contextTenantName");
+const contextRestaurantName = document.getElementById("contextRestaurantName");
+const contextRestaurantRole = document.getElementById("contextRestaurantRole");
+const changeRestaurantBtn = document.getElementById("changeRestaurantBtn");
+
 let currentUser = null;
 let currentMember = null;
 let currentRestaurant = null;
 let modulosInicializados = false;
+let restaurantesPermitidos = [];
 
 function mostrarCargando() {
   authLoading.hidden = false;
@@ -192,38 +199,25 @@ async function verificarCambioPassword(user) {
     .maybeSingle();
 
   if (error) {
-    console.error(
-      "Error comprobando profile:",
-      error
-    );
+    console.error("Error comprobando profile:", error);
 
     mostrarLogin();
-    mostrarMensaje(
-      "No fue posible comprobar el estado de tu cuenta."
-    );
+    mostrarMensaje("No fue posible comprobar el estado de tu cuenta.");
 
     return false;
   }
 
   // Un usuario del sistema debería tener profile
   if (!profile) {
-    console.error(
-      "No existe profile para el usuario:",
-      user.id
-    );
+    console.error("No existe profile para el usuario:", user.id);
 
     mostrarLogin();
-    mostrarMensaje(
-      "Tu cuenta no tiene un perfil configurado correctamente."
-    );
+    mostrarMensaje("Tu cuenta no tiene un perfil configurado correctamente.");
 
     return false;
   }
 
-  console.log(
-    "Estado must_change_password:",
-    profile.must_change_password
-  );
+  //console.log("Estado must_change_password:",profile.must_change_password);
 
   // Ya cambió su contraseña
   if (profile.must_change_password === false) {
@@ -281,23 +275,15 @@ changePasswordForm.addEventListener("submit", async event => {
     const {
       data,
       error: passwordError
-    } = await supabase.auth.updateUser({
-      password: password
-    });
+    } = await supabase.auth.updateUser({ password: password });
 
     if (passwordError) {
-      console.error(
-        "Error Supabase Auth:",
-        passwordError
-      );
+      console.error("Error Supabase Auth:", passwordError);
 
       throw passwordError;
     }
 
-    console.log(
-      "Contraseña actualizada correctamente:",
-      data.user?.id
-    );
+    console.log("Contraseña actualizada correctamente:", data.user?.id);
 
     // 2. Marcar contraseña temporal como cambiada
     const {
@@ -314,10 +300,7 @@ changePasswordForm.addEventListener("submit", async event => {
       .maybeSingle();
 
     if (profileError) {
-      console.error(
-        "Error actualizando profile:",
-        profileError
-      );
+      console.error("Error actualizando profile:", profileError);
 
       throw profileError;
     }
@@ -325,22 +308,15 @@ changePasswordForm.addEventListener("submit", async event => {
     // IMPORTANTE:
     // comprobar que realmente se modificó una fila
     if (!updatedProfile) {
-      throw new Error(
-        "La contraseña cambió en Auth, pero no se pudo actualizar el perfil."
-      );
+      throw new Error("La contraseña cambió en Auth, pero no se pudo actualizar el perfil.");
     }
 
     // Comprobación extra
     if (updatedProfile.must_change_password !== false) {
-      throw new Error(
-        "El perfil continúa marcado para cambio de contraseña."
-      );
+      throw new Error("El perfil continúa marcado para cambio de contraseña.");
     }
 
-    console.log(
-      "Profile actualizado correctamente:",
-      updatedProfile
-    );
+    console.log("Profile actualizado correctamente:", updatedProfile);
 
     // 3. Actualizamos usuario actual
     currentUser = data.user ?? currentUser;
@@ -349,8 +325,7 @@ changePasswordForm.addEventListener("submit", async event => {
     changePasswordForm.reset();
 
     // 5. Cerrar modal
-    const modal =
-      bootstrap.Modal.getInstance(changePasswordModal);
+    const modal = bootstrap.Modal.getInstance(changePasswordModal);
 
     modal?.hide();
 
@@ -359,13 +334,9 @@ changePasswordForm.addEventListener("submit", async event => {
 
   } catch (error) {
 
-    console.error(
-      "ERROR COMPLETO CAMBIO PASSWORD:",
-      error
-    );
+    console.error("ERROR COMPLETO CAMBIO PASSWORD:", error);
 
-    let mensaje =
-      "No fue posible actualizar la contraseña.";
+    let mensaje = "No fue posible actualizar la contraseña.";
 
     if (error?.message) {
       mensaje = error.message;
@@ -379,6 +350,22 @@ changePasswordForm.addEventListener("submit", async event => {
     changePasswordButton.innerHTML = textoOriginal;
   }
 });
+
+function obtenerContextoGuardado() {
+  try {
+    const raw = sessionStorage.getItem("pos_context");
+    if (!raw) return null;
+
+    const context = JSON.parse(raw);
+
+    if (!context?.tenantId || !context?.restaurantId) return null;
+
+    return context;
+  } catch {
+    sessionStorage.removeItem("pos_context");
+    return null;
+  }
+}
 
 async function cargarRestaurantesPermitidos() {
   let restaurantes = [];
@@ -434,66 +421,177 @@ async function cargarRestaurantesPermitidos() {
       }));
   }
 
+  restaurantesPermitidos = restaurantes;
+
   if (!restaurantes.length) {
+    sessionStorage.removeItem("pos_context");
+
     await cerrarSesionInterna();
+
     mostrarMensaje("No tienes sucursales activas asignadas.");
+
     return;
   }
 
+  // =====================================================
+  // RECUPERAR SUCURSAL UTILIZADA
+  const contextoGuardado = obtenerContextoGuardado();
+
+  if (
+    contextoGuardado &&
+    contextoGuardado.tenantId === currentMember.tenant_id
+  ) {
+    const restauranteGuardado = restaurantes.find(restaurant => restaurant.id === contextoGuardado.restaurantId);
+
+    if (restauranteGuardado) {
+      await seleccionarRestaurante(restauranteGuardado);
+
+      return;
+    }
+  }
+
+  // =====================================================
+  // SI SOLO TIENE UNA, ENTRAR AUTOMÁTICAMENTE
   if (restaurantes.length === 1) {
     await seleccionarRestaurante(restaurantes[0]);
+
     return;
   }
 
+  // =====================================================
+  // NO HAY CONTEXTO VÁLIDO → PREGUNTAR
+  sessionStorage.removeItem("pos_context");
   mostrarSelectorRestaurantes(restaurantes);
+
 }
 
-function mostrarSelectorRestaurantes(restaurantes) {
+function mostrarSelectorRestaurantes(restaurantes, restaurantActualId = null) {
   restaurantOptions.innerHTML = "";
 
   for (const restaurant of restaurantes) {
+    const esActual = restaurant.id === restaurantActualId;
     const button = document.createElement("button");
 
     button.type = "button";
-    button.className = "btn btn-outline-primary text-start p-3";
+
+    button.className = esActual ? "btn btn-primary text-start p-3" : "btn btn-outline-primary text-start p-3";
 
     button.innerHTML = `
-			<div class="fw-bold">
-				<i class="fas fa-store me-2"></i>
-				${escaparHTML(restaurant.nombre)}
-			</div>
-			${restaurant.role
-        ? `<small class="text-muted">${nombreRol(restaurant.role)}</small>`
-        : `<small class="text-muted">Propietario</small>`
+			<div class="d-flex justify-content-between align-items-center gap-3">
+				<div>
+					<div class="fw-bold">
+						<i class="fas fa-store me-2"></i>
+						${escaparHTML(restaurant.nombre)}
+					</div>
+
+					<small class="${esActual ? "text-white-50" : "text-muted"}">
+						${restaurant.role
+        ? nombreRol(restaurant.role)
+        : "Propietario"
       }
+					</small>
+				</div>
+
+				${esActual
+        ? `
+						<span class="badge bg-light text-primary">
+							Actual
+						</span>
+					`
+        : ""
+      }
+			</div>
 		`;
 
-    button.addEventListener("click", async () => {
-      const modal = bootstrap.Modal.getInstance(restaurantSelectorModal);
-      modal?.hide();
+    if (esActual) {
+      button.disabled = true;
+    } else {
+      button.addEventListener("click", async () => {
+        const modal = bootstrap.Modal.getInstance(restaurantSelectorModal);
 
-      await seleccionarRestaurante(restaurant);
-    });
+        modal?.hide();
 
-    restaurantOptions.appendChild(button);
+        await cambiarRestaurante(restaurant);
+      }
+      );
+    }
+
+    restaurantOptions.appendChild(
+      button
+    );
   }
 
   const modal = bootstrap.Modal.getOrCreateInstance(restaurantSelectorModal);
+
   modal.show();
 }
 
-async function seleccionarRestaurante(restaurant) {
+async function cambiarRestaurante(restaurant) {
+  if (!restaurant?.id) return;
+
+  if (currentRestaurant?.id === restaurant.id) {
+    return;
+  }
+
+  guardarContextoRestaurante(
+    restaurant
+  );
+
+  document.dispatchEvent(
+    new CustomEvent(
+      "pos:restaurant-changed",
+      {
+        detail: {
+          tenantId:
+            currentMember.tenant_id,
+
+          restaurantId:
+            restaurant.id,
+
+          restaurantName:
+            restaurant.nombre,
+
+          restaurantRole:
+            restaurant.role ?? "owner"
+        }
+      }
+    )
+  );
+}
+
+function guardarContextoRestaurante(restaurant) {
   currentRestaurant = restaurant;
+
+  const tenantName = currentMember.tenants?.nombre ?? "";
 
   sessionStorage.setItem(
     "pos_context",
     JSON.stringify({
-      tenantId: currentMember.tenant_id,
-      restaurantId: restaurant.id,
-      restaurantName: restaurant.nombre,
-      membershipRole: currentMember.role,
-      restaurantRole: restaurant.role ?? "owner"
+      tenantId:
+        currentMember.tenant_id,
+
+      tenantName,
+
+      restaurantId:
+        restaurant.id,
+
+      restaurantName:
+        restaurant.nombre,
+
+      membershipRole:
+        currentMember.role,
+
+      restaurantRole:
+        restaurant.role ?? "owner"
     })
+  );
+
+  actualizarContextoVisual();
+}
+
+async function seleccionarRestaurante(restaurant) {
+  guardarContextoRestaurante(
+    restaurant
   );
 
   mostrarPOS();
@@ -526,11 +624,21 @@ logoutButton.addEventListener("click", async event => {
   currentMember = null;
   currentRestaurant = null;
   modulosInicializados = false;
+  restaurantesPermitidos = [];
+  modulosInicializados = false;
 
   sessionStorage.removeItem("pos_context");
 
   emailInput.value = "";
   passwordInput.value = "";
+
+  restaurantContext.hidden = true;
+
+  contextTenantName.textContent = "";
+  contextRestaurantName.textContent = "";
+  contextRestaurantRole.textContent = "";
+
+  document.title = "Sistema de Puntos - Admin";
 
   mostrarLogin();
 });
@@ -559,5 +667,37 @@ function escaparHTML(valor) {
   element.textContent = valor ?? "";
   return element.innerHTML;
 }
+
+function actualizarContextoVisual() {
+  if (!currentMember || !currentRestaurant) {
+    restaurantContext.hidden = true;
+    return;
+  }
+
+  const tenantNombre = currentMember.tenants?.nombre ?? "Negocio";
+  const restaurantNombre = currentRestaurant.nombre ?? "Sucursal";
+  const role = currentRestaurant.role ?? (currentMember.role === "owner" ? "owner" : "staff");
+
+  contextTenantName.textContent = tenantNombre;
+  contextRestaurantName.textContent = restaurantNombre;
+  contextRestaurantRole.textContent = role === "owner" ? "Propietario" : nombreRol(role);
+
+  restaurantContext.hidden = false;
+  changeRestaurantBtn.hidden = restaurantesPermitidos.length <= 1;
+  document.title = `${restaurantNombre} | Software POS`;
+}
+
+changeRestaurantBtn?.addEventListener("click", () => {
+  if (!restaurantesPermitidos.length) {
+    mostrarMensaje("No tienes sucursales disponibles.");
+    return;
+  }
+
+  if (restaurantesPermitidos.length === 1) {
+    return;
+  }
+
+  mostrarSelectorRestaurantes(restaurantesPermitidos, currentRestaurant?.id);
+});
 
 verificarSesion();

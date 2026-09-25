@@ -3,15 +3,13 @@ import { escaparHTML } from "../shared/utils.js";
 import { mostrarError, mostrarAdvertencia, mostrarCargando, cerrarCargando } from "../shared/alertas.js";
 
 // =====================================================
-// ESTADO DEL MÓDULO
-// =====================================================
-
 let tenantId = null;
+
+let sucursalesCache = [];
+let sloganGeneral = null;
 
 // =====================================================
 // DOM
-// =====================================================
-
 const branches = document.getElementById("branches");
 const branchForm = document.getElementById("branchForm");
 const branchName = document.getElementById("branchName");
@@ -27,10 +25,19 @@ const editBranchPhone = document.getElementById("editBranchPhone");
 const editBranchEmail = document.getElementById("editBranchEmail");
 const saveBranchBtn = document.getElementById("saveBranchBtn");
 
+const sloganForm = document.getElementById("sloganForm");
+const businessSlogan = document.getElementById("businessSlogan");
+const sloganAllBranches = document.getElementById("sloganAllBranches");
+const sloganSelectedBranches = document.getElementById("sloganSelectedBranches");
+const sloganBranchesContainer = document.getElementById("sloganBranchesContainer");
+const saveSloganBtn = document.getElementById("saveSloganBtn");
+
+const editBranchCurrentSlogan = document.getElementById("editBranchCurrentSlogan");
+const editBranchSloganType = document.getElementById("editBranchSloganType");
+const editBranchCustomSloganContainer = document.getElementById("editBranchCustomSloganContainer");
+
 // =====================================================
 // INICIALIZAR
-// =====================================================
-
 let moduloInicializado = false;
 
 export async function iniciarModuloSucursales(idTenant) {
@@ -44,11 +51,15 @@ export async function iniciarModuloSucursales(idTenant) {
     if (!moduloInicializado) {
 
         configurarFormularioSucursal();
+        configurarFormularioSlogan();
 
         moduloInicializado = true;
     }
 
-    await cargarSucursales();
+    await Promise.all([
+        cargarSloganGeneral(),
+        cargarSucursales()
+    ]);
 }
 
 // =====================================================
@@ -336,10 +347,53 @@ async function crearSucursal(event) {
     });
 }
 
+function configurarFormularioSlogan() {
+    sloganAllBranches?.addEventListener(
+        "change",
+        actualizarScopeSlogan
+    );
+
+    sloganSelectedBranches?.addEventListener(
+        "change",
+        actualizarScopeSlogan);
+
+    sloganForm?.addEventListener("submit", guardarSlogan);
+}
+
+function actualizarScopeSlogan() {
+    const seleccionar = sloganSelectedBranches.checked;
+
+    sloganBranchesContainer.hidden = !seleccionar;
+
+    if (seleccionar) {
+        renderSucursalesSlogan();
+    }
+}
+
+async function cargarSloganGeneral() {
+    const currentBusinessSlogan = document.getElementById("currentBusinessSlogan");
+
+    const { data, error } = await supabase
+        .from("tenants")
+        .select("slogan")
+        .eq("id", tenantId)
+        .maybeSingle();
+
+    if (error) {
+        console.error("Error cargando slogan general:", error);
+
+        return;
+    }
+
+    sloganGeneral = data?.slogan ?? null;
+
+    businessSlogan.value = sloganGeneral ?? "";
+
+    currentBusinessSlogan.textContent = sloganGeneral || "Sin slogan configurado";
+}
+
 // =====================================================
 // CARGAR SUCURSALES
-// =====================================================
-
 async function cargarSucursales() {
 
     if (!tenantId) {
@@ -368,12 +422,17 @@ async function cargarSucursales() {
             telefono,
             email,
             activo,
-            created_at
+            created_at,
+            branding (
+                slogan
+            )
         `)
         .eq("tenant_id", tenantId)
         .order("created_at", {
             ascending: true
         });
+
+    sucursalesCache = data ?? [];
 
     if (error) {
         console.error("Error cargando sucursales:", error);
@@ -402,6 +461,20 @@ async function cargarSucursales() {
         div.classList.add(
             "restaurante"
         );
+
+        const sloganPersonalizado = restaurante.branding?.slogan ?? null;
+
+        const sloganEfectivo =
+            sloganPersonalizado ??
+            sloganGeneral ??
+            null;
+
+        const tipoSlogan =
+            sloganPersonalizado
+                ? "Personalizado"
+                : sloganGeneral
+                    ? "General"
+                    : null;
 
         div.innerHTML = `
 
@@ -432,8 +505,37 @@ async function cargarSucursales() {
                             <i class="bi bi-telephone me-2"></i>
 
                             ${escaparHTML(restaurante.telefono ?? "Sin teléfono")}
-
                         </p>
+                            ${sloganEfectivo ? `
+                                <div class="branch-slogan mt-3">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <i class="bi bi-chat-quote text-primary"></i>
+
+                                        <span class="small fw-semibold">
+                                            Slogan
+                                        </span>
+
+                                        <span class="
+                                            badge
+                                            ${sloganPersonalizado
+                    ? "text-bg-primary"
+                    : "text-bg-light border"
+                }
+                                                                ">
+                                                                    ${tipoSlogan}
+                                                                </span>
+                                                            </div>
+
+                                                            <p class="mb-0 fst-italic">
+                                                                “${escaparHTML(sloganEfectivo)}”
+                                                            </p>
+                                                        </div>
+                                                    ` : `
+                                                        <p class="text-secondary small mt-3 mb-0">
+                                                            <i class="bi bi-chat-quote me-1"></i>
+                                                            Sin slogan configurado
+                                                        </p>
+                                                    `}
 
                     </div>
 
@@ -500,6 +602,158 @@ async function cargarSucursales() {
         );
     }
     );
+}
+
+function renderSucursalesSlogan() {
+    if (!sucursalesCache.length) {
+        sloganBranchesContainer.innerHTML = `
+			<div class="text-secondary small">
+				No existen sucursales disponibles.
+			</div>
+		`;
+
+        return;
+    }
+
+    sloganBranchesContainer.innerHTML =
+        sucursalesCache
+            .filter(sucursal => sucursal.activo)
+            .map(sucursal => `
+				<label class="form-check border rounded p-3 mb-2">
+					<input
+						type="checkbox"
+						class="form-check-input slogan-branch me-2"
+						value="${sucursal.id}"
+					>
+
+					<span class="form-check-label">
+						${escaparHTML(sucursal.nombre)}
+					</span>
+				</label>
+			`)
+            .join("");
+}
+
+async function guardarSlogan(event) {
+    event.preventDefault();
+
+    if (!tenantId) return;
+
+    const slogan =
+        businessSlogan.value.trim();
+
+    if (slogan.length > 160) {
+        await mostrarAdvertencia(
+            "Slogan demasiado largo",
+            "El slogan no puede superar los 160 caracteres."
+        );
+
+        return;
+    }
+
+    const aplicarTodas =
+        sloganAllBranches.checked;
+
+    const restaurantIds =
+        aplicarTodas
+            ? []
+            : [
+                ...sloganBranchesContainer
+                    .querySelectorAll(
+                        ".slogan-branch:checked"
+                    )
+            ].map(item => item.value);
+
+    if (
+        !aplicarTodas &&
+        !restaurantIds.length
+    ) {
+        await mostrarAdvertencia(
+            "Selecciona una sucursal",
+            "Selecciona al menos una sucursal donde aplicar el slogan."
+        );
+
+        return;
+    }
+
+    const original =
+        saveSloganBtn.innerHTML;
+
+    saveSloganBtn.disabled = true;
+
+    saveSloganBtn.innerHTML = `
+		<span class="spinner-border spinner-border-sm me-2"></span>
+		Guardando...
+	`;
+
+    try {
+        const { data, error } =
+            await supabase.rpc(
+                "configurar_slogan",
+                {
+                    p_tenant_id:
+                        tenantId,
+
+                    p_slogan:
+                        slogan || null,
+
+                    p_aplicar_todas:
+                        aplicarTodas,
+
+                    p_restaurant_ids:
+                        restaurantIds
+                }
+            );
+
+        if (error) {
+            throw error;
+        }
+
+        if (!data?.success) {
+            throw new Error(
+                data?.code ??
+                "No fue posible guardar el slogan."
+            );
+        }
+
+        await Promise.all([
+            cargarSloganGeneral(),
+            cargarSucursales()
+        ]);
+
+        bootstrap.Modal
+            .getInstance(
+                document.getElementById(
+                    "sloganModal"
+                )
+            )
+            ?.hide();
+
+        await Swal.fire({
+            icon: "success",
+            title: "Slogan actualizado",
+            text: aplicarTodas
+                ? "El slogan se aplicará a todas las sucursales."
+                : "El slogan se aplicó a las sucursales seleccionadas.",
+            confirmButtonText: "Continuar",
+            confirmButtonColor: "#2563eb"
+        });
+
+    } catch (error) {
+        console.error(
+            "Error guardando slogan:",
+            error
+        );
+
+        await mostrarError(
+            "No pudimos guardar el slogan",
+            "Ocurrió un problema actualizando la configuración."
+        );
+
+    } finally {
+        saveSloganBtn.disabled = false;
+        saveSloganBtn.innerHTML = original;
+    }
 }
 
 branches.addEventListener("click", async event => {
@@ -672,38 +926,115 @@ async function desactivarSucursal(
 }
 
 async function abrirEditarSucursal(restaurantId) {
-    if (!tenantId || !restaurantId) return;
+	if (!tenantId || !restaurantId) return;
 
-    mostrarCargando("Cargando sucursal...");
+	mostrarCargando("Cargando sucursal...");
 
-    try {
-        const { data, error } = await supabase
-            .from("restaurants")
-            .select("id,nombre,slug,telefono,email,activo")
-            .eq("id", restaurantId)
-            .eq("tenant_id", tenantId)
-            .maybeSingle();
+	try {
+		const { data, error } = await supabase
+			.from("restaurants")
+			.select(`
+				id,
+				nombre,
+				slug,
+				telefono,
+				email,
+				activo,
+				branding (
+					slogan
+				)
+			`)
+			.eq("id", restaurantId)
+			.eq("tenant_id", tenantId)
+			.maybeSingle();
 
-        if (error) throw error;
-        if (!data) throw new Error("Sucursal no encontrada.");
+		if (error) {
+			throw error;
+		}
 
-        editBranchId.value = data.id;
-        editBranchName.value = data.nombre ?? "";
-        editBranchSlug.value = data.slug ?? "";
-        editBranchPhone.value = data.telefono ?? "";
-        editBranchEmail.value = data.email ?? "";
+		if (!data) {
+			throw new Error(
+				"Sucursal no encontrada."
+			);
+		}
 
-        cerrarCargando();
-        bootstrap.Modal.getOrCreateInstance(editBranchModal).show();
+		// ==========================================
+		// INFORMACIÓN GENERAL
+		// ==========================================
 
-    } catch {
-        cerrarCargando();
+		editBranchId.value =
+			data.id;
 
-        await mostrarError(
-            "No pudimos cargar la sucursal",
-            "La información de la sucursal no está disponible."
-        );
-    }
+		editBranchName.value =
+			data.nombre ?? "";
+
+		editBranchSlug.value =
+			data.slug ?? "";
+
+		editBranchPhone.value =
+			data.telefono ?? "";
+
+		editBranchEmail.value =
+			data.email ?? "";
+
+		// ==========================================
+		// SLOGAN
+		// ==========================================
+
+		const sloganPersonalizado =
+			data.branding?.slogan ?? "";
+
+		const tieneSloganPersonalizado =
+			Boolean(sloganPersonalizado);
+
+		const sloganEfectivo =
+			sloganPersonalizado ||
+			sloganGeneral ||
+			"Sin slogan configurado";
+
+		editBranchCurrentSlogan.textContent =
+			sloganEfectivo;
+
+		editBranchSloganType.textContent =
+			tieneSloganPersonalizado
+				? "Personalizado"
+				: "General";
+
+		editBranchSloganType.className =
+			tieneSloganPersonalizado
+				? "badge text-bg-primary"
+				: "badge text-bg-light border";
+
+		editBranchCustomSlogan.checked =
+			tieneSloganPersonalizado;
+
+		editBranchCustomSloganContainer.hidden =
+			!tieneSloganPersonalizado;
+
+		editBranchSlogan.value =
+			sloganPersonalizado;
+
+		cerrarCargando();
+
+		bootstrap.Modal
+			.getOrCreateInstance(
+				editBranchModal
+			)
+			.show();
+
+	} catch (error) {
+		cerrarCargando();
+
+		console.error(
+			"Error cargando sucursal:",
+			error
+		);
+
+		await mostrarError(
+			"No pudimos cargar la sucursal",
+			"La información de la sucursal no está disponible."
+		);
+	}
 }
 
 editBranchForm.addEventListener("submit", guardarEdicionSucursal);
@@ -717,17 +1048,69 @@ async function guardarEdicionSucursal(event) {
     const telefono = editBranchPhone.value.trim();
     const email = editBranchEmail.value.trim().toLowerCase();
 
+    const usarSloganPersonalizado =
+        editBranchCustomSlogan.checked;
+
+    const slogan =
+        editBranchSlogan.value.trim();
+
+    // =====================================================
+    // VALIDACIONES
+    // =====================================================
+
     if (!id || !nombre || !slug) {
-        await mostrarAdvertencia("Información incompleta", "El nombre y el identificador son obligatorios.");
+        await mostrarAdvertencia(
+            "Información incompleta",
+            "El nombre y el identificador son obligatorios."
+        );
+
         return;
     }
 
-    const textoOriginal = saveBranchBtn.innerHTML;
+    if (
+        usarSloganPersonalizado &&
+        !slogan
+    ) {
+        await mostrarAdvertencia(
+            "Slogan requerido",
+            "Escribe un slogan personalizado o desactiva la opción."
+        );
+
+        editBranchSlogan.focus();
+
+        return;
+    }
+
+    if (slogan.length > 160) {
+        await mostrarAdvertencia(
+            "Slogan demasiado largo",
+            "El slogan no puede superar los 160 caracteres."
+        );
+
+        editBranchSlogan.focus();
+
+        return;
+    }
+
+    // =====================================================
+    // ESTADO DEL BOTÓN
+    // =====================================================
+
+    const textoOriginal =
+        saveBranchBtn.innerHTML;
+
     saveBranchBtn.disabled = true;
-    saveBranchBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Guardando...`;
+
+    saveBranchBtn.innerHTML = `
+		<span class="spinner-border spinner-border-sm me-2"></span>
+		Guardando...
+	`;
 
     try {
-        const { data: slugExistente, error: validationError } = await supabase
+        const {
+            data: slugExistente,
+            error: validationError
+        } = await supabase
             .from("restaurants")
             .select("id")
             .eq("tenant_id", tenantId)
@@ -735,50 +1118,116 @@ async function guardarEdicionSucursal(event) {
             .neq("id", id)
             .maybeSingle();
 
-        if (validationError) throw validationError;
+        if (validationError) {
+            throw validationError;
+        }
 
         if (slugExistente) {
-            await mostrarError("Identificador no disponible", `Ya existe otra sucursal con el identificador "${slug}".`);
+            await mostrarError(
+                "Identificador no disponible",
+                `Ya existe otra sucursal con el identificador "${slug}".`
+            );
+
             return;
         }
 
-        const { data, error } = await supabase
+        const {
+            data,
+            error
+        } = await supabase
             .from("restaurants")
             .update({
                 nombre,
                 slug,
-                telefono: telefono || null,
-                email: email || null,
-                updated_at: new Date().toISOString()
+                telefono:
+                    telefono || null,
+
+                email:
+                    email || null,
+
+                updated_at:
+                    new Date().toISOString()
             })
             .eq("id", id)
             .eq("tenant_id", tenantId)
-            .select("id,nombre,slug,telefono,email")
+            .select(
+                "id,nombre,slug,telefono,email"
+            )
             .single();
 
         if (error) {
             if (error.code === "23505") {
-                await mostrarError("Identificador no disponible", `Ya existe otra sucursal con el identificador "${slug}".`);
+                await mostrarError(
+                    "Identificador no disponible",
+                    `Ya existe otra sucursal con el identificador "${slug}".`
+                );
+
                 return;
             }
+
             if (error.code === "42501") {
-                await mostrarError("Sin permisos", "Tu cuenta no tiene permisos para modificar esta sucursal.");
+                await mostrarError(
+                    "Sin permisos",
+                    "Tu cuenta no tiene permisos para modificar esta sucursal."
+                );
+
                 return;
             }
+
             throw error;
         }
 
-        bootstrap.Modal.getInstance(editBranchModal)?.hide();
+        const {
+            error: brandingError
+        } = await supabase
+            .from("branding")
+            .update({
+                slogan:
+                    usarSloganPersonalizado
+                        ? slogan
+                        : null,
+
+                updated_at:
+                    new Date().toISOString()
+            })
+            .eq(
+                "restaurant_id",
+                id
+            );
+
+        if (brandingError) {
+            throw brandingError;
+        }
+
+        bootstrap.Modal
+            .getInstance(
+                editBranchModal
+            )
+            ?.hide();
+
         await cargarSucursales();
+
         notificarSucursalesActualizadas();
 
         await Swal.fire({
             icon: "success",
             title: "Sucursal actualizada",
-            html: `<strong>${escaparHTML(data.nombre)}</strong><p class="text-secondary mt-2 mb-0">Los cambios fueron guardados correctamente.</p>`,
-            confirmButtonText: "Continuar",
-            confirmButtonColor: "#2563eb"
+            html: `
+				<strong>
+					${escaparHTML(data.nombre)}
+				</strong>
+
+				<p class="text-secondary mt-2 mb-0">
+					Los cambios fueron guardados correctamente.
+				</p>
+			`,
+            confirmButtonText:
+                "Continuar",
+
+            confirmButtonColor:
+                "#2563eb"
         });
+
     } catch (error) {
         console.error(
             "Error inesperado actualizando sucursal:",
@@ -789,9 +1238,13 @@ async function guardarEdicionSucursal(event) {
             "No pudimos actualizar la sucursal",
             "Ocurrió un problema guardando los cambios."
         );
+
     } finally {
-        saveBranchBtn.disabled = false;
-        saveBranchBtn.innerHTML = textoOriginal;
+        saveBranchBtn.disabled =
+            false;
+
+        saveBranchBtn.innerHTML =
+            textoOriginal;
     }
 }
 
@@ -916,3 +1369,17 @@ function notificarSucursalesActualizadas() {
         })
     );
 }
+
+const editBranchCustomSlogan = document.getElementById("editBranchCustomSlogan");
+
+const editBranchSlogan = document.getElementById("editBranchSlogan");
+
+editBranchCustomSlogan?.addEventListener("change", () => {
+    const usarPersonalizado = editBranchCustomSlogan.checked;
+
+    editBranchCustomSloganContainer.hidden = !usarPersonalizado;
+
+    if (usarPersonalizado) {
+        editBranchSlogan.focus();
+    }
+});
