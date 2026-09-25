@@ -590,12 +590,23 @@ function renderEmpleados(empleados) {
             const asignacionesActivas = (empleado.restaurant_members ?? [])
                 .filter(item => item.activo);
 
+            const rolesActivos = [...new Set(
+                asignacionesActivas
+                    .map(item => item.role)
+                    .filter(Boolean)
+            )];
+
+            const rolEmpleado = rolesActivos.length === 1
+                ? nombreRol(rolesActivos[0])
+                : rolesActivos.length > 1
+                    ? "Roles múltiples"
+                    : "Sin rol asignado";
+
             const sucursalesHTML = asignacionesActivas.length
                 ? asignacionesActivas.map(item => `
                         <span class="badge text-bg-light border me-1 mb-1">
                             <i class="bi bi-shop me-1"></i>
                             ${escaparHTML(item.restaurants?.nombre ?? "Sucursal")}
-                            · ${escaparHTML(nombreRol(item.role))}
                         </span>
                     `).join("")
                 : `<span class="text-secondary">Sin sucursales asignadas</span>`;
@@ -609,71 +620,26 @@ function renderEmpleados(empleados) {
                             d-flex
                             justify-content-between
                             align-items-start
-                            gap-3
-                        "
-                    >
+                            gap-3">
 
                         <div>
-
                             <h3 class="h6 mb-1">
-
-                                ${escaparHTML(
-                empleado.profile?.nombre ??
-                "Empleado"
-            )
-                }
-
+                                ${escaparHTML(empleado.profile?.nombre ?? "Empleado")}
                             </h3>
 
-
-                            <div class="mb-2">
-
-                                <span
-                                    class="
-                                        badge
-                                        ${empleado.activo
-                    ? "text-bg-success"
-                    : "text-bg-secondary"
-                }
-                                    "
-                                >
-
-                                    ${empleado.activo
-                    ? "Activo"
-                    : "Inactivo"
-                }
-
-                                </span>
-
+                            <div class="employee-role mb-2">
+                                <i class="bi bi-person-badge me-1"></i>
+                                ${escaparHTML(rolEmpleado)}
                             </div>
 
+                            <div class="mb-2">
+                                <span class="badge ${empleado.activo ? "text-bg-success" : "text-bg-secondary"}">
+                                ${empleado.activo ? "Activo" : "Inactivo"}</span>
+                            </div>
 
-                            ${empleado.profile?.telefono
-                    ? `
-                                        <p
-                                            class="
-                                                text-secondary
-                                                small
-                                                mb-2
-                                            "
-                                        >
-                                            <i
-                                                class="
-                                                    bi bi-telephone
-                                                    me-1
-                                                "
-                                            ></i>
-
-                                            ${escaparHTML(
-                        empleado.profile.telefono
-                    )
-                    }
-
-                                        </p>
-                                    `
-                    : ""
-                }
-
+                            ${empleado.profile?.telefono ? `<p class="text-secondary small mb-2">
+                            <i class="bi bi-telephone me-1"></i>
+                            ${escaparHTML(empleado.profile.telefono)}</p> ` : ""}
 
                             <div>
                                 ${sucursalesHTML}
@@ -1398,59 +1364,59 @@ document.addEventListener(
     }
 );
 async function manejarErrorEdicionEmpleado(error) {
-	const mensaje = error?.message?.toLowerCase() ?? "";
-	const code = error?.code ?? "";
+    const mensaje = error?.message?.toLowerCase() ?? "";
+    const code = error?.code ?? "";
 
-	// RPC inexistente o firma incorrecta
-	if (code === "PGRST202" || mensaje.includes("could not find the function")) {
-		console.error("RPC actualizar_empleado no encontrada o firma incorrecta:", error);
+    // RPC inexistente o firma incorrecta
+    if (code === "PGRST202" || mensaje.includes("could not find the function")) {
+        console.error("RPC actualizar_empleado no encontrada o firma incorrecta:", error);
 
-		return mostrarError(
-			"Error de configuración",
-			"No fue posible localizar la función de actualización del empleado."
-		);
-	}
+        return mostrarError(
+            "Error de configuración",
+            "No fue posible localizar la función de actualización del empleado."
+        );
+    }
 
-	if (mensaje.includes("no tienes permisos")) {
-		return mostrarError(
-			"Sin permisos",
-			"Tu cuenta no tiene permisos para modificar este empleado."
-		);
-	}
+    if (mensaje.includes("no tienes permisos")) {
+        return mostrarError(
+            "Sin permisos",
+            "Tu cuenta no tiene permisos para modificar este empleado."
+        );
+    }
 
-	if (mensaje.includes("empleado está inactivo")) {
-		return mostrarAdvertencia(
-			"Empleado inactivo",
-			"Para modificar sus accesos primero debes reactivar al empleado."
-		);
-	}
+    if (mensaje.includes("empleado está inactivo")) {
+        return mostrarAdvertencia(
+            "Empleado inactivo",
+            "Para modificar sus accesos primero debes reactivar al empleado."
+        );
+    }
 
-	if (mensaje.includes("rol no válido")) {
-		return mostrarError(
-			"Rol no válido",
-			"El rol seleccionado no es válido."
-		);
-	}
+    if (mensaje.includes("rol no válido")) {
+        return mostrarError(
+            "Rol no válido",
+            "El rol seleccionado no es válido."
+        );
+    }
 
-	if (
-		mensaje.includes("sucursal") ||
-		mensaje.includes("sucursales")
-	) {
-		return mostrarError(
-			"Sucursal no disponible",
-			"Una de las sucursales seleccionadas ya no está disponible."
-		);
-	}
+    if (
+        mensaje.includes("sucursal") ||
+        mensaje.includes("sucursales")
+    ) {
+        return mostrarError(
+            "Sucursal no disponible",
+            "Una de las sucursales seleccionadas ya no está disponible."
+        );
+    }
 
-	console.error(
-		"Error inesperado actualizando empleado:",
-		error
-	);
+    console.error(
+        "Error inesperado actualizando empleado:",
+        error
+    );
 
-	return mostrarError(
-		"No pudimos actualizar el empleado",
-		"Ocurrió un problema guardando los cambios."
-	);
+    return mostrarError(
+        "No pudimos actualizar el empleado",
+        "Ocurrió un problema guardando los cambios."
+    );
 }
 
 function notificarEmpleadosActualizados() {

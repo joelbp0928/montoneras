@@ -1152,3 +1152,15 @@ body {
 		justify-content: center;
 	}
 }
+
+.employee-role {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 3px 8px;
+	border-radius: 6px;
+	background: var(--color-primary-soft);
+	color: var(--color-primary);
+	font-size: 12px;
+	font-weight: 600;
+}
