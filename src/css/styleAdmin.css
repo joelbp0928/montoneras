@@ -817,6 +817,7 @@ img {
   align-items: center;
   cursor: pointer;
   transition: background-color 0.3s ease-in-out;
+  z-index: 1100;
 }
 
 .config-button i {
@@ -825,6 +826,36 @@ img {
 
 .config-button:hover {
   background-color: #a11884;
+}
+
+@media (max-width: 480px) {
+	.restaurant-context {
+		right: 74px;
+		padding: 6px 8px;
+	}
+
+	.restaurant-context-icon {
+		width: 30px;
+		height: 30px;
+	}
+
+	.context-tenant {
+		display: none;
+	}
+
+	.context-role {
+		display: none;
+	}
+
+	.context-restaurant {
+		font-size: 12px;
+		font-weight: 600;
+	}
+
+	.change-restaurant-btn {
+		width: 28px;
+		height: 28px;
+	}
 }
 
 /* 🔹 Modal de Configuración (Inicialmente oculto) */
@@ -864,6 +895,28 @@ img {
 
 .close-config:hover {
   color: red;
+}
+
+@media (max-width: 768px) {
+	.config-button {
+		top: 12px;
+		right: 12px;
+
+		width: 42px;
+		height: 42px;
+
+		font-size: 17px;
+	}
+
+	.config-button i {
+		font-size: 19px;
+	}
+}
+
+@media (max-width: 768px) {
+	.logo-container {
+		margin-top: 72px;
+	}
 }
 
 /* 🔹 Estilos para Inputs */
@@ -1142,8 +1195,68 @@ img {
 
 @media (max-width: 768px) {
 	.restaurant-context {
-		position: static;
-		margin: 15px;
+		position: fixed;
+
+		top: 12px;
+		left: 12px;
+		right: 82px;
+
+		width: auto;
+		min-width: 0;
+		max-width: none;
+
+		gap: 8px;
+
+		padding: 7px 9px;
+
+		border-radius: 10px;
+
+		z-index: 1000;
+	}
+
+	.restaurant-context-icon {
+		width: 32px;
+		height: 32px;
+
+		border-radius: 8px;
+
+		font-size: 13px;
+	}
+
+	.restaurant-context-info {
+		flex: 1;
+		min-width: 0;
+
+		text-align: left;
+	}
+
+	.context-tenant {
+		font-size: 9px;
+
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.context-restaurant {
+		font-size: 12px;
+
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.context-role {
+		font-size: 9px;
+	}
+
+	.change-restaurant-btn {
+		width: 30px;
+		height: 30px;
+
+		border-radius: 8px;
+
+		font-size: 12px;
 	}
 }
 

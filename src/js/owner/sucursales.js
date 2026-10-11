@@ -568,6 +568,30 @@ async function cargarSucursales() {
                         Editar
                     </button>
 
+                ${restaurante.activo
+                ? `
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm portal-clientes"
+                            data-id="${restaurante.id}"
+                            data-nombre="${escaparHTML(restaurante.nombre)}"
+                        >
+                            <i class="bi bi-qr-code"></i>
+                            Portal clientes
+                        </button>
+                    `
+                : `
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary btn-sm"
+                            disabled
+                            title="Reactiva la sucursal para habilitar su portal"
+                        >
+                            <i class="bi bi-qr-code"></i>
+                            Portal no disponible
+                        </button>
+                    `
+            }
 
                     ${restaurante.activo
                 ? `
@@ -760,10 +784,12 @@ branches.addEventListener("click", async event => {
     const editar = event.target.closest(".editar");
     const desactivar = event.target.closest(".desactivar-sucursal");
     const reactivar = event.target.closest(".reactivar-sucursal");
+    const portal = event.target.closest(".portal-clientes");
 
     if (editar) return abrirEditarSucursal(editar.dataset.id);
     if (desactivar) return desactivarSucursal(desactivar.dataset.id, desactivar.dataset.nombre);
     if (reactivar) return reactivarSucursal(reactivar.dataset.id, reactivar.dataset.nombre);
+    if (portal) return abrirPortalClientes(portal.dataset.id, portal.dataset.nombre);
 });
 
 async function desactivarSucursal(
@@ -926,14 +952,14 @@ async function desactivarSucursal(
 }
 
 async function abrirEditarSucursal(restaurantId) {
-	if (!tenantId || !restaurantId) return;
+    if (!tenantId || !restaurantId) return;
 
-	mostrarCargando("Cargando sucursal...");
+    mostrarCargando("Cargando sucursal...");
 
-	try {
-		const { data, error } = await supabase
-			.from("restaurants")
-			.select(`
+    try {
+        const { data, error } = await supabase
+            .from("restaurants")
+            .select(`
 				id,
 				nombre,
 				slug,
@@ -944,97 +970,97 @@ async function abrirEditarSucursal(restaurantId) {
 					slogan
 				)
 			`)
-			.eq("id", restaurantId)
-			.eq("tenant_id", tenantId)
-			.maybeSingle();
+            .eq("id", restaurantId)
+            .eq("tenant_id", tenantId)
+            .maybeSingle();
 
-		if (error) {
-			throw error;
-		}
+        if (error) {
+            throw error;
+        }
 
-		if (!data) {
-			throw new Error(
-				"Sucursal no encontrada."
-			);
-		}
+        if (!data) {
+            throw new Error(
+                "Sucursal no encontrada."
+            );
+        }
 
-		// ==========================================
-		// INFORMACIÓN GENERAL
-		// ==========================================
+        // ==========================================
+        // INFORMACIÓN GENERAL
+        // ==========================================
 
-		editBranchId.value =
-			data.id;
+        editBranchId.value =
+            data.id;
 
-		editBranchName.value =
-			data.nombre ?? "";
+        editBranchName.value =
+            data.nombre ?? "";
 
-		editBranchSlug.value =
-			data.slug ?? "";
+        editBranchSlug.value =
+            data.slug ?? "";
 
-		editBranchPhone.value =
-			data.telefono ?? "";
+        editBranchPhone.value =
+            data.telefono ?? "";
 
-		editBranchEmail.value =
-			data.email ?? "";
+        editBranchEmail.value =
+            data.email ?? "";
 
-		// ==========================================
-		// SLOGAN
-		// ==========================================
+        // ==========================================
+        // SLOGAN
+        // ==========================================
 
-		const sloganPersonalizado =
-			data.branding?.slogan ?? "";
+        const sloganPersonalizado =
+            data.branding?.slogan ?? "";
 
-		const tieneSloganPersonalizado =
-			Boolean(sloganPersonalizado);
+        const tieneSloganPersonalizado =
+            Boolean(sloganPersonalizado);
 
-		const sloganEfectivo =
-			sloganPersonalizado ||
-			sloganGeneral ||
-			"Sin slogan configurado";
+        const sloganEfectivo =
+            sloganPersonalizado ||
+            sloganGeneral ||
+            "Sin slogan configurado";
 
-		editBranchCurrentSlogan.textContent =
-			sloganEfectivo;
+        editBranchCurrentSlogan.textContent =
+            sloganEfectivo;
 
-		editBranchSloganType.textContent =
-			tieneSloganPersonalizado
-				? "Personalizado"
-				: "General";
+        editBranchSloganType.textContent =
+            tieneSloganPersonalizado
+                ? "Personalizado"
+                : "General";
 
-		editBranchSloganType.className =
-			tieneSloganPersonalizado
-				? "badge text-bg-primary"
-				: "badge text-bg-light border";
+        editBranchSloganType.className =
+            tieneSloganPersonalizado
+                ? "badge text-bg-primary"
+                : "badge text-bg-light border";
 
-		editBranchCustomSlogan.checked =
-			tieneSloganPersonalizado;
+        editBranchCustomSlogan.checked =
+            tieneSloganPersonalizado;
 
-		editBranchCustomSloganContainer.hidden =
-			!tieneSloganPersonalizado;
+        editBranchCustomSloganContainer.hidden =
+            !tieneSloganPersonalizado;
 
-		editBranchSlogan.value =
-			sloganPersonalizado;
+        editBranchSlogan.value =
+            sloganPersonalizado;
 
-		cerrarCargando();
+        cerrarCargando();
 
-		bootstrap.Modal
-			.getOrCreateInstance(
-				editBranchModal
-			)
-			.show();
+        bootstrap.Modal
+            .getOrCreateInstance(
+                editBranchModal
+            )
+            .show();
 
-	} catch (error) {
-		cerrarCargando();
+    } catch (error) {
+        cerrarCargando();
 
-		console.error(
-			"Error cargando sucursal:",
-			error
-		);
+        console.error(
+            "Error cargando sucursal:",
+            error
+        );
 
-		await mostrarError(
-			"No pudimos cargar la sucursal",
-			"La información de la sucursal no está disponible."
-		);
-	}
+        await mostrarError(
+            "No pudimos cargar la sucursal",
+            "La información de la sucursal no está disponible."
+        );
+    }
 }
 
 editBranchForm.addEventListener("submit", guardarEdicionSucursal);
@@ -1348,6 +1374,124 @@ async function reactivarSucursal(restaurantId, nombre) {
     });
 }
 
+async function mostrarPortalSucursal({
+    restaurantName,
+    code,
+    url,
+    created
+}) {
+    await Swal.fire({
+        title: "Portal de clientes",
+
+        html: `
+			<div class="text-start">
+
+				<p class="text-secondary mb-3">
+					Comparte este enlace o imprime el QR
+					para que tus clientes ingresen al
+					programa de puntos.
+				</p>
+
+				<div class="text-center mb-3">
+					<canvas
+						id="storefrontQrCanvas"
+						width="220"
+						height="220"
+					></canvas>
+				</div>
+
+				<div class="mb-2">
+					<strong>
+						${escaparHTML(
+            restaurantName
+        )}
+					</strong>
+				</div>
+
+				<div
+					class="
+						input-group
+						input-group-sm
+					"
+				>
+					<input
+						id="storefrontUrlInput"
+						type="text"
+						class="form-control"
+						value="${escaparHTML(url)}"
+						readonly
+					>
+
+					<button
+						type="button"
+						id="copyStorefrontUrl"
+						class="btn btn-outline-primary"
+					>
+						<i class="bi bi-copy"></i>
+						Copiar
+					</button>
+				</div>
+
+				<p
+					class="
+						small
+						text-secondary
+						mt-2
+						mb-0
+					"
+				>
+					Código:
+					<strong>
+						${escaparHTML(code)}
+					</strong>
+				</p>
+
+			</div>
+		`,
+
+        showConfirmButton: true,
+
+        confirmButtonText:
+            "Listo",
+
+        confirmButtonColor:
+            "#2563eb",
+
+        didOpen: () => {
+            const canvas =
+                document.getElementById(
+                    "storefrontQrCanvas"
+                );
+
+            new QRious({
+                element: canvas,
+                value: url,
+                size: 220,
+                level: "H"
+            });
+
+            const copyButton =
+                document.getElementById(
+                    "copyStorefrontUrl"
+                );
+
+            copyButton?.addEventListener(
+                "click",
+                async () => {
+                    await navigator
+                        .clipboard
+                        .writeText(url);
+
+                    copyButton.innerHTML = `
+						<i class="bi bi-check-lg"></i>
+						Copiado
+					`;
+                }
+            );
+        }
+    });
+}
+
 // =====================================================
 // UTILIDADES
 function normalizarSlug(valor) {
@@ -1368,6 +1512,77 @@ function notificarSucursalesActualizadas() {
             detail: { tenantId }
         })
     );
+}
+
+async function abrirPortalClientes(
+    restaurantId,
+    restaurantName
+) {
+    if (!restaurantId) {
+        return;
+    }
+
+    mostrarCargando("Preparando portal de clientes...");
+
+    try {
+        const { data, error } =
+            await supabase.rpc(
+                "get_or_create_storefront_link",
+                {
+                    p_restaurant_id:
+                        restaurantId
+                }
+            );
+
+        if (error) {
+            throw error;
+        }
+
+        if (
+            !data?.success ||
+            !data?.code
+        ) {
+            throw new Error("INVALID_STOREFRONT_LINK");
+        }
+
+        const code = data.code;
+
+        const url = crearURLPortalCliente(code);
+
+        cerrarCargando();
+
+        await mostrarPortalSucursal({
+            restaurantName,
+            code,
+            url,
+            created:
+                data.created === true
+        });
+
+    } catch (error) {
+        cerrarCargando();
+
+        console.error("Error preparando portal:", error);
+
+        if (error?.message?.includes("RESTAURANT_NOT_FOUND")) {
+            await mostrarAdvertencia("Portal no disponible", "La sucursal está inactiva o ya no está disponible. Reactívala para habilitar nuevamente el portal de clientes.");
+            return;
+        }
+
+        if (error?.message?.includes("FORBIDDEN")) {
+            await mostrarError("Sin permisos", "No tienes permisos para administrar el portal de esta sucursal.");
+            return;
+        }
+
+        await mostrarError("No pudimos preparar el portal", "No fue posible generar el enlace de esta sucursal.");
+    }
+}
+
+function crearURLPortalCliente(code) {
+    return new URL(
+        `/s/${encodeURIComponent(code)}`,
+        window.location.origin
+    ).href;
 }
 
 const editBranchCustomSlogan = document.getElementById("editBranchCustomSlogan");

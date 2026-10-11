@@ -106,7 +106,9 @@ export async function initAdminConfig() {
     const loadingElement = document.getElementById("loading");
 
     try {
-        loadingElement.style.display = "flex";
+        if (loadingElement) {
+            loadingElement.hidden = false;
+        }
 
         const config = await getConfigFromFirestore();
 
@@ -130,7 +132,9 @@ export async function initAdminConfig() {
         showmessage("❌ Error al cargar configuración.", "error");
         console.error("❌ Error al cargar configuración:", error);
     } finally {
-        loadingElement.style.display = "none";
+        if (loadingElement) {
+            loadingElement.hidden = true;
+        }
     }
 }
 

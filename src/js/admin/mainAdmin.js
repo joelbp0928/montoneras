@@ -30,11 +30,22 @@ const contextRestaurantName = document.getElementById("contextRestaurantName");
 const contextRestaurantRole = document.getElementById("contextRestaurantRole");
 const changeRestaurantBtn = document.getElementById("changeRestaurantBtn");
 
+const configButton = document.getElementById("configButton");
+
 let currentUser = null;
 let currentMember = null;
 let currentRestaurant = null;
 let modulosInicializados = false;
 let restaurantesPermitidos = [];
+
+function actualizarPermisosVisuales() {
+  const esPropietario =
+    currentMember?.role === "owner";
+
+  if (configButton) {
+    configButton.hidden = !esPropietario;
+  }
+}
 
 function mostrarCargando() {
   authLoading.hidden = false;
@@ -123,6 +134,7 @@ loginForm.addEventListener("submit", async event => {
       return;
     }
 
+    mostrarCargando();
     await procesarUsuario(data.user);
   } catch (error) {
     console.error("Error iniciando sesión:", error);
@@ -176,6 +188,8 @@ async function procesarUsuario(user) {
   }
 
   currentMember = member;
+
+  actualizarPermisosVisuales();
 
   // El cambio obligatorio de contraseña solo aplica
   // a empleados creados con contraseña temporal.
@@ -511,9 +525,13 @@ function mostrarSelectorRestaurantes(restaurantes, restaurantActualId = null) {
 
         modal?.hide();
 
-        await cambiarRestaurante(restaurant);
-      }
-      );
+        if (currentRestaurant) {
+          await cambiarRestaurante(restaurant);
+          return;
+        }
+
+        await seleccionarRestaurante(restaurant);
+      });
     }
 
     restaurantOptions.appendChild(
@@ -589,29 +607,34 @@ function guardarContextoRestaurante(restaurant) {
   actualizarContextoVisual();
 }
 
-async function seleccionarRestaurante(restaurant) {
-  guardarContextoRestaurante(
-    restaurant
-  );
+function seleccionarRestaurante(restaurant) {
+  guardarContextoRestaurante(restaurant);
 
   mostrarPOS();
-
-  await inicializarPOS();
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      inicializarPOS();
+    }, 0);
+  });
 }
 
-async function inicializarPOS() {
+function inicializarPOS() {
   if (modulosInicializados) {
     return;
   }
 
   modulosInicializados = true;
 
+  if (currentMember?.role !== "owner") {
+    return;
+  }
+
   try {
-    initMenuConfig();
-    initAdminConfig();
     setupAdminEventListeners();
-  } catch (error) {
-    console.error("Error inicializando POS:", error);
+    initMenuConfig();
+    void initAdminConfig();
+  } catch (error) {Ñ
+    console.error("Error inicializando configuración:", error);
   }
 }
 
@@ -625,7 +648,6 @@ logoutButton.addEventListener("click", async event => {
   currentRestaurant = null;
   modulosInicializados = false;
   restaurantesPermitidos = [];
-  modulosInicializados = false;
 
   sessionStorage.removeItem("pos_context");
 
@@ -637,6 +659,10 @@ logoutButton.addEventListener("click", async event => {
   contextTenantName.textContent = "";
   contextRestaurantName.textContent = "";
   contextRestaurantRole.textContent = "";
+  
+  if (configButton) {
+    configButton.hidden = true;
+  }
 
   document.title = "Sistema de Puntos - Admin";
 

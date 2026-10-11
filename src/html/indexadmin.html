@@ -130,9 +130,12 @@
 
       <!-- 🔹 Botón de Configuración (Usando Bootstrap) -->
       <button
+        type="button"
+        id="configButton"
         class="btn btn-primary config-button"
         data-bs-toggle="modal"
         data-bs-target="#configModal"
+        hidden
       >
         <i class="fas fa-cog"></i>
       </button>
@@ -365,7 +368,7 @@
       </div>
 
       <!-- 🔹 Loader Mejorado -->
-      <div id="loading">
+      <div id="loading" hidden>
         <div class="spinner"></div>
         <p>Cargando configuración...</p>
       </div>
