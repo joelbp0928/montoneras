@@ -2,7 +2,7 @@ import { supabase } from './config-supabase.js';
 import { showmessage } from './showmessage.js';
 import { showError, hideError } from "./manageError.js";
 import { isValidDate } from './validarFecha.js';
-
+import { obtenerStorefrontCode } from "./storefront-context.js";
 // Obtiene una referencia al formulario de registro
 const signupForm = document.getElementById("signup-form");
 

@@ -1,10 +1,9 @@
 // Importar las funciones y objetos necesarios
-import { logincheck } from './js/logincheck.js'
-import { setupPosts, checkSupabaseSession } from "./js/postPuntos.js"
-import { showmessage } from "./js/showmessage.js"
+import { checkSupabaseSession } from "./js/postPuntos.js"
 import { loadConfigImages, listenForConfigChanges } from "./js/config.js";
-import { initWelcome, renderWelcomeMessage, listenWelcomeChanges } from "./js/config/welcome.js";
+import { initWelcome, listenWelcomeChanges } from "./js/config/welcome.js";
 import { supabase } from "./js/config-supabase.js";
+import { obtenerStorefrontCode } from "./js/storefront.js";
 
 // Importar los módulos necesarios para las funcionalidades específicas
 import './js/config-supabase.js'
@@ -17,14 +16,10 @@ import './js/menu.js'
 //Llamar la función para cargar las imágenes del logo y background
 document.addEventListener("DOMContentLoaded", async () => {
 
-    const storefront =
-        await cargarStorefront();
+    const storefront = await cargarStorefront();
 
     if (storefront) {
-        console.log(
-            "Portal encontrado:",
-            storefront
-        );
+     //   console.log("Portal encontrado:", storefront);
     }
 
     loadConfigImages();
@@ -39,52 +34,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 });
 
-function obtenerStorefrontCode() {
-    const partes = window.location.pathname
-        .split("/")
-        .filter(Boolean);
-
-    if (
-        partes[0] !== "s" ||
-        !partes[1]
-    ) {
-        return null;
-    }
-
-    return partes[1];
-}
-
 async function cargarStorefront() {
-    const code =
-        obtenerStorefrontCode();
+    const code = obtenerStorefrontCode();
 
     if (!code) {
         return null;
     }
 
-    const { data, error } =
-        await supabase.rpc(
-            "resolve_storefront",
-            {
-                p_code: code
-            }
-        );
+    const { data, error } = await supabase.rpc("resolve_storefront", { p_code: code });
 
     if (error) {
-        console.error(
-            "Error resolviendo portal:",
-            error
-        );
-
+        console.error("Error resolviendo portal:", error);
         return null;
     }
 
     if (!data?.success) {
-        console.warn(
-            "Portal no encontrado:",
-            data
-        );
-
+        console.warn("Portal no encontrado:", data);
         return null;
     }
 
