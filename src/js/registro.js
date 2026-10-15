@@ -10,6 +10,7 @@ const signupForm = document.getElementById("signup-form");
 signupForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const registroButton = document.getElementById('registroButton');
+
   registroButton.disabled = true;
 
   showmessage("Registrando. Espere...", "warning");
@@ -19,11 +20,11 @@ signupForm.addEventListener("submit", async (e) => {
   hideError("nacimiento", "mensajeErrorNacimiento");
 
   // Obtiene los valores del formulario
-  const telefono = document.getElementById("telefonoRegistro").value;
+  const telefono = document.getElementById("telefonoRegistro").value.replace(/\D/g, "");
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   const confirmPassword = document.getElementById("confirmPassword").value;
-  const nombre = document.getElementById('nombre').value;
+  const nombre = document.getElementById('nombre').value.trim();
   const alcaldia = document.getElementById('alcaldia').value;
   const colonia = document.getElementById('colonia').value;
   const nacimiento = document.getElementById('nacimiento').value;

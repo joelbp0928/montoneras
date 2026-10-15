@@ -3,7 +3,7 @@ import { checkSupabaseSession } from "./js/postPuntos.js"
 import { loadConfigImages, listenForConfigChanges } from "./js/config.js";
 import { initWelcome, listenWelcomeChanges } from "./js/config/welcome.js";
 import { supabase } from "./js/config-supabase.js";
-import { obtenerStorefrontCode } from "./js/storefront.js";
+import { obtenerStorefrontCode } from "/js/storefront-context.js";
 
 // Importar los módulos necesarios para las funcionalidades específicas
 import './js/config-supabase.js'
