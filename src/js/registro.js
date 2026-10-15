@@ -21,15 +21,22 @@ signupForm.addEventListener("submit", async (e) => {
 
   // Obtiene los valores del formulario
   const telefono = document.getElementById("telefonoRegistro").value.replace(/\D/g, "");
-  const email = document.getElementById("email").value;
+  const email = document.getElementById("email").value.trim().toLowerCase();
   const password = document.getElementById("password").value;
   const confirmPassword = document.getElementById("confirmPassword").value;
   const nombre = document.getElementById('nombre').value.trim();
   const alcaldia = document.getElementById('alcaldia').value;
   const colonia = document.getElementById('colonia').value;
-  const nacimiento = document.getElementById('nacimiento').value;
+  const nacimiento = document.getElementById('nacimiento').value.trim();
+
+  const storefrontCode = obtenerStorefrontCode();
 
   try {
+    if (!storefrontCode) {
+			showmessage("Abre el enlace de una tienda para registrarte.","error");
+      
+			return;
+		}
     // Validaciones (igual que antes)
     if (!(await validarYProcesarEmail(email))) {
       registroButton.disabled = false;
